@@ -113,25 +113,43 @@ uci get wireless.radio1.bcf
 
 ## Antenna Selection
 
-Field testing at 915 MHz shows:
+### Recommended Antennas (915 MHz)
 
-| Antenna Type | Best For | Notes |
-|-------------|----------|-------|
-| **Omni whip** | Mobile / general use | Captures multipath reflections |
-| **RHCP 915** | Mobile / general use | Handles polarization mismatch well |
-| **Omni stub** | Compact mobile | Good all-around performance |
-| **Directional panel** | Fixed point-to-point only | Rejects useful multipath in mobile use |
+Based on field testing in suburban environments (cement block construction, mobile/vehicle use):
+
+| Antenna | Type | Best For | Field Results |
+|---------|------|----------|---------------|
+| **RHCP 915 MHz** (e.g. Linx Technologies) | Right-hand circular polarized | Gate + mobile | Best overall performer — handles reflections off buildings, ground, and vehicles. Best signal through cement block walls. |
+| **Muzi 915 MHz** | Omni whip | Gate + mobile | Strong all-around performer |
+| **Alfa AOA-915-5ACM** | Omni (5 dBi) | Gate (fixed) | Good for fixed gate installations |
+| **"Yogurt cup"** (DIY cantenna) | Semi-directional | Gate (fixed, aimed) | Surprisingly effective low-cost option |
+
+### Antennas That Underperform
+
+| Antenna | Type | Issue |
+|---------|------|-------|
+| **Taoglas Sighunter** | Directional panel | Rejects useful multipath; no improvement over omni even when aimed correctly |
+| **Small stub antennas** | Omni (low gain) | Work but noticeably less range than full-size whip or RHCP |
+
+### Why RHCP Works Best
+
+At 915 MHz, signals bounce off everything — buildings, ground, trees, vehicles, cement walls. Each reflection can flip the signal's polarization. A standard linear antenna (vertical whip) loses up to 20 dB when receiving a signal whose polarization has been rotated by reflections.
+
+**Circular polarized (RHCP) antennas** receive any polarization with at most 3 dB loss. This makes them ideal for:
+- Signals passing through walls (cement block, brick)
+- Mobile use where the antenna orientation varies
+- Suburban environments with heavy multipath
 
 ### Why Directional Antennas Often Disappoint
 
-At 900 MHz, signals bounce off buildings, ground, trees, and vehicles. In a mobile or suburban scenario, **multipath reflections carry significant energy**. Omni and RHCP antennas capture all of these, while a directional antenna rejects reflections coming from "off-axis" directions — which can actually **reduce** total received power.
+At 900 MHz in a mobile or suburban scenario, **multipath reflections carry significant energy**. Omni and RHCP antennas capture all of these, while a directional antenna rejects reflections coming from "off-axis" directions — which can actually **reduce** total received power.
 
 Directional antennas only help when:
 - Both ends are **fixed** (not mobile)
 - There is **clear line of sight** between them
 - You need to **reach a specific distant point** without interfering with others
 
-> **Recommendation:** Use omni or RHCP antennas for mobile/general use. Reserve directional for fixed long-range links.
+> **Recommendation:** Use RHCP on both ends if possible. Fall back to omni whip (Muzi, Alfa) for general use. Reserve directional for fixed long-range point-to-point links only.
 
 ## SNR Requirements by MCS Rate
 
