@@ -60,10 +60,8 @@ The difference between 21 and 27 dBm is **~6 dB = 4x the output power**, which t
 
 | Device | Chip | Form Factor | Notes |
 |--------|------|-------------|-------|
-| **Haven Node** (Parallel) | MM601X + external PA | Standalone node | Custom BCF, integrated with OpenMANET |
+| **Haven Node** (Parallel) | Seeed FGH100M-H + OpenMANET BCF | Standalone mesh node | Custom BCF enables 27 dBm |
 | **Heltec HT-HD01 V2** | MM6108A1 | USB/Ethernet dongle | BCF: `bcf_HD01_v2.bin` |
-| **Seeed Studio FGH100M-H** | MM6108 | HAT/module | Requires custom BCF for 27 dBm (default is lower) |
-| **OpenMANET RPi HAT** | MM6108 | Raspberry Pi HAT | Custom BCF enables ~27 dBm |
 
 #### 26 dBm Devices
 
@@ -77,6 +75,7 @@ The difference between 21 and 27 dBm is **~6 dB = 4x the output power**, which t
 | Device | Chip | Form Factor | Notes |
 |--------|------|-------------|-------|
 | **Heltec HT-HD01 V1/V1.1** | MM6108A1 | USB/Ethernet dongle | BCF: `bcf_mf08551.bin`, no external PA |
+| **Silex SX-SDMAH-EVB-US** | MM6108 | Industrial eval board | 22 dBm |
 | **Morse Micro MM6108-EKH01** | MM6108 | Eval kit | First-gen reference design |
 | **Alfa HaLow-R** | MM6108 | Indoor router | 802.11ah + WiFi 4 |
 | **Alfa HaLow-U** | MM6108 | USB adapter | AP & client mode |
