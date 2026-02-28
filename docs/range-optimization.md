@@ -81,13 +81,6 @@ The difference between 21 and 27 dBm is **~6 dB = 4x the output power**, which t
 | **Alfa HaLow-U** | MM6108 | USB adapter | AP & client mode |
 | **Seeed Wio-WM6180** | MM6108 | Mini-PCIe module | Default BCF (~21 dBm) |
 
-#### Other / Lower Power
-
-| Device | Chip | Form Factor | Notes |
-|--------|------|-------------|-------|
-| **LILYGO T-Halow** | Taixin TX-AH | ESP32-S3 board | AT command control, ~1.2 km range |
-| **Alfa Tube-AH** | MM6108 | Outdoor AP/CPE | PoE, weatherproof |
-
 > **Note:** The Morse Micro MM8108 (Gen 2) is a significant upgrade — it has an **integrated** 26 dBm PA (no external PA needed), supports 256-QAM for up to 43 Mbps, and is more power efficient. As boards based on the MM8108 become available, they will be the best option for both range and throughput.
 
 ### How to Check Your TX Power
