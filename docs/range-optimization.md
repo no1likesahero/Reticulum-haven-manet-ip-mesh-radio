@@ -52,24 +52,72 @@ uci set wireless.radio1.htmode='HT10'
 
 ## TX Power
 
-Haven-compatible hardware varies in TX power:
+The difference between 21 and 27 dBm is **~6 dB = 4x the output power**, which translates to roughly **40-60% more range**. TX power is determined by the hardware (chip + power amplifier) and the BCF (Board Configuration File). You cannot increase it beyond what the hardware supports.
 
-| Hardware | TX Power | Notes |
-|----------|----------|-------|
-| Haven Node (MM601X + PA) | 27 dBm | External power amplifier |
-| Heltec HT-CT62 (some models) | 27 dBm | BCF file: `bcf_HD01_v2.bin` |
-| Heltec HT-CT62 (standard) | 21-22 dBm | BCF file: `bcf_mf08551.bin` |
+### Known Hardware TX Power Levels
 
-The difference between 21 and 27 dBm is **~6 dB = 4x the output power**, which translates to roughly **40-60% more range**.
+#### 27 dBm Devices (High Power)
 
-### Checking Your TX Power
+| Device | Chip | Form Factor | Notes |
+|--------|------|-------------|-------|
+| **Haven Node** (Parallel) | MM601X + external PA | Standalone node | Custom BCF, integrated with OpenMANET |
+| **Heltec HT-HD01 V2** | MM6108A1 | USB/Ethernet dongle | BCF: `bcf_HD01_v2.bin` |
+| **Seeed Studio FGH100M-H** | MM6108 | HAT/module | Requires custom BCF for 27 dBm (default is lower) |
+| **OpenMANET RPi HAT** | MM6108 | Raspberry Pi HAT | Custom BCF enables ~27 dBm |
+
+#### 26 dBm Devices
+
+| Device | Chip | Form Factor | Notes |
+|--------|------|-------------|-------|
+| **Morse Micro MM8108-EKH19** | MM8108 (Gen 2) | USB dongle eval kit | Integrated PA, up to 43 Mbps, 256-QAM |
+| **Morse Micro MM8108-EKH01** | MM8108 (Gen 2) | RPi 4 eval kit | Integrated 26 dBm PA |
+
+#### 21-22 dBm Devices (Standard Power)
+
+| Device | Chip | Form Factor | Notes |
+|--------|------|-------------|-------|
+| **Heltec HT-HD01 V1/V1.1** | MM6108A1 | USB/Ethernet dongle | BCF: `bcf_mf08551.bin`, no external PA |
+| **Morse Micro MM6108-EKH01** | MM6108 | Eval kit | First-gen reference design |
+| **Alfa HaLow-R** | MM6108 | Indoor router | 802.11ah + WiFi 4 |
+| **Alfa HaLow-U** | MM6108 | USB adapter | AP & client mode |
+| **Seeed Wio-WM6180** | MM6108 | Mini-PCIe module | Default BCF (~21 dBm) |
+
+#### Other / Lower Power
+
+| Device | Chip | Form Factor | Notes |
+|--------|------|-------------|-------|
+| **LILYGO T-Halow** | Taixin TX-AH | ESP32-S3 board | AT command control, ~1.2 km range |
+| **Alfa Tube-AH** | MM6108 | Outdoor AP/CPE | PoE, weatherproof |
+
+> **Note:** The Morse Micro MM8108 (Gen 2) is a significant upgrade — it has an **integrated** 26 dBm PA (no external PA needed), supports 256-QAM for up to 43 Mbps, and is more power efficient. As boards based on the MM8108 become available, they will be the best option for both range and throughput.
+
+### How to Check Your TX Power
 
 ```bash
+# Reported TX power
 iwinfo wlan0 info | grep "Tx-Power"
+
+# Hardware max from driver
 dmesg | grep "tx_max_power_mbm"
+
+# BCF file in use
+uci get wireless.radio1.bcf
 ```
 
-TX power is determined by the hardware and BCF (Board Configuration File). You cannot increase it beyond what the hardware supports.
+### Identifying Heltec HT-HD01 Version
+
+The V1 and V2 look identical externally. Check via SSH:
+
+```bash
+# 21 dBm = V1/V1.1
+# 27 dBm = V2
+iwinfo wlan0 info | grep "Tx-Power"
+
+# Or check BCF file
+uci get wireless.radio1.bcf
+# bcf_mf08551.bin = V1 (21 dBm)
+# bcf_HD01_v2.bin = V2 (27 dBm)
+```
 
 ## Antenna Selection
 
