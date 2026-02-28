@@ -129,7 +129,7 @@ Based on field testing in suburban environments (cement block construction, mobi
 | Antenna | Type | Issue |
 |---------|------|-------|
 | **Taoglas Sighunter** | Directional panel | Rejects useful multipath; no improvement over omni even when aimed correctly |
-| **Small stub antennas** | Omni (low gain) | Work but noticeably less range than full-size whip or RHCP |
+| **Fiberglass outdoor omni (10 dBi, Amazon)** | High-gain omni | Poor performance in testing; possibly poor tuning or vendor quality |
 
 ### Why RHCP Works Best
 
