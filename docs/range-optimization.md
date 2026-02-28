@@ -119,10 +119,10 @@ Based on field testing in suburban environments (cement block construction, mobi
 
 | Antenna | Type | Best For | Field Results |
 |---------|------|----------|---------------|
-| **RHCP 915 MHz** (e.g. Linx Technologies) | Right-hand circular polarized | Gate + mobile | Best overall performer — handles reflections off buildings, ground, and vehicles. Best signal through cement block walls. |
+| **RHCP 915 MHz** (e.g. TrueRC) | Right-hand circular polarized | Gate + mobile | Best overall performer — handles reflections off buildings, ground, and vehicles. Best signal through cement block walls. |
 | **Muzi 915 MHz** | Omni whip | Gate + mobile | Strong all-around performer |
 | **Alfa AOA-915-5ACM** | Omni (5 dBi) | Gate (fixed) | Good for fixed gate installations |
-| **"Yogurt cup"** (DIY cantenna) | Semi-directional | Gate (fixed, aimed) | Surprisingly effective low-cost option |
+| **HDCU "Yogurt Cup"** (Five Four Communications) | Omni, 3 dBi, BNC | Mobile / manpack | 3D printed, gooseneck mount, lightweight and easy to deploy |
 
 ### Antennas That Underperform
 
