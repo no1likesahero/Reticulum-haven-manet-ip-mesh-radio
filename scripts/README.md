@@ -273,7 +273,7 @@ tail -f /tmp/bridge.log
 
 ## Configuring Heltec HaLow Nodes (BATMAN-adv)
 
-The `configure-heltec.sh` script sets up [Heltec HaLow](https://heltec.org/) nodes running OpenWrt to join the Haven mesh using BATMAN-adv routing over 802.11s.
+The `configure-heltec.sh` script sets up [Heltec HaLow](https://heltec.org/project/ht-hd01/) nodes running OpenWrt to join the Haven mesh using BATMAN-adv routing over 802.11s.
 
 <img src="../assets/heltec-1.JPG" alt="Heltec HaLow node" width="500">
 
@@ -304,8 +304,6 @@ GATEWAY_IP="10.41.0.3"
 ```
 
 After reboot, the node is reachable at `MESH_IP` on the mesh network.
-
-<video src="../assets/heltec-2.MOV" controls width="500"></video>
 
 > **Note:** The Heltec default firmware ships with an anonymous bridge device for `br-ahwlan` that conflicts with BATMAN-adv. The script automatically detects and removes these before creating the correct bridge configuration.
 
