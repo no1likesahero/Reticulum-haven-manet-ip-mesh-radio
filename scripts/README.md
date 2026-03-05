@@ -17,6 +17,7 @@ Automated setup scripts for configuring Haven mesh nodes.
 | `setup-haven-gate.sh` | Configure gateway node (internet uplink) | First node |
 | `setup-haven-point.sh` | Configure extender node | Additional nodes |
 | `setup-reticulum.sh` | Install encrypted mesh overlay | Any node (optional) |
+| `configure-heltec.sh` | Configure Heltec HaLow node for BATMAN-adv mesh | Heltec v2 nodes |
 | `setup-cot-bridge.sh` | Install ATAK/CivTAK bridge | Any node (optional) |
 | `rns_status.py` | Live Reticulum + HaLow network dashboard | Any node |
 | `rns_send.py` | Send a message over Reticulum | Sender node |
@@ -269,6 +270,44 @@ See [ATAK/README.md](../ATAK/README.md) for peering, live dashboards, and troubl
 ```bash
 tail -f /tmp/bridge.log
 ```
+
+## Configuring Heltec HaLow Nodes (BATMAN-adv)
+
+The `configure-heltec.sh` script sets up [Heltec HaLow](https://heltec.org/) nodes running OpenWrt to join the Haven mesh using BATMAN-adv routing over 802.11s.
+
+<img src="../assets/heltec-1.JPG" alt="Heltec HaLow node" width="500">
+
+This is an alternative to the standard point node setup — use it when your node is a Heltec v2 HaLow board rather than a Raspberry Pi with a HaLow HAT.
+
+**What it does:**
+
+1. Binds the HaLow mesh radio to `bat0` via a `batadv_hardif` interface
+2. Disables 802.11s forwarding (BATMAN-adv handles routing instead)
+3. Creates `bat0` with BATMAN_V in client gateway mode
+4. Bridges `bat0` into `br-ahwlan` with a static mesh IP
+5. Connects the local WiFi AP to the mesh bridge so clients get internet
+6. Removes conflicting anonymous bridge devices from the default firmware
+
+**Usage:**
+
+1. SSH into the Heltec node: `ssh root@10.42.0.1`
+2. Edit the configuration variables at the top of the script (`HOSTNAME`, `MESH_IP`, etc.) for your node
+3. Paste the script into the terminal and run it
+4. Reboot: `reboot`
+
+```bash
+# Configuration variables to set per-node:
+HOSTNAME="heltec-4"
+MESH_IP="10.41.0.4"
+MESH_NETMASK="255.255.0.0"
+GATEWAY_IP="10.41.0.3"
+```
+
+After reboot, the node is reachable at `MESH_IP` on the mesh network.
+
+<video src="../assets/heltec-2.MOV" controls width="500"></video>
+
+> **Note:** The Heltec default firmware ships with an anonymous bridge device for `br-ahwlan` that conflicts with BATMAN-adv. The script automatically detects and removes these before creating the correct bridge configuration.
 
 ---
 
