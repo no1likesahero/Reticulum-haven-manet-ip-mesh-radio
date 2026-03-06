@@ -23,7 +23,7 @@ MESH_IP="10.41.0.1"           # Initial IP; openmanetd may reassign after boot
 MESH_NETMASK="255.255.0.0"
 
 # HaLow radio settings (802.11ah)
-HALOW_CHANNEL="28"        # US: 1-51, channel 28 = 916 MHz
+HALOW_CHANNEL="27"        # US: 1-51, channel 27 = 914 MHz
 HALOW_HTMODE="HT20"       # HT20=2MHz, HT40=4MHz, HT80=8MHz
 
 # WiFi AP settings
@@ -76,9 +76,14 @@ else
     uci set wireless.$HALOW_IFACE.mesh_id="$MESH_ID"
     uci set wireless.$HALOW_IFACE.encryption='sae'
     uci set wireless.$HALOW_IFACE.key="$MESH_KEY"
-    uci set wireless.$HALOW_IFACE.network='ahwlan'
+    uci set wireless.$HALOW_IFACE.network='batmesh'
     uci set wireless.$HALOW_IFACE.mesh_fwding='0'
     uci set wireless.$HALOW_IFACE.beacon_int='1000'
+
+    # batmesh — binds the HaLow wlan to bat0 as a hard interface
+    uci set network.batmesh=interface
+    uci set network.batmesh.proto='batadv_hardif'
+    uci set network.batmesh.master='bat0'
 fi
 
 echo "[3/6] Configuring 5GHz access point..."
@@ -110,8 +115,9 @@ uci set network.ahwlan=interface
 uci set network.ahwlan.proto='static'
 uci set network.ahwlan.ipaddr="$MESH_IP"
 uci set network.ahwlan.netmask="$MESH_NETMASK"
-uci set network.ahwlan.type='bridge'
 uci set network.ahwlan.delegate='0'
+# NOTE: Do NOT set network.ahwlan.type='bridge' — it auto-creates anonymous
+# bridge devices that conflict with our explicit ahwlan_dev definition.
 # Gate must NEVER have a gateway on ahwlan — it IS the mesh gateway.
 # A gateway here would create a default route into the mesh instead of
 # out via eth0 to the upstream router, breaking internet for all clients.
@@ -126,10 +132,26 @@ uci set network.bat0.gw_mode='server'
 uci set network.bat0.orig_interval='1000'
 
 uci set network.ahwlan.device='br-ahwlan'
+
+# Remove anonymous bridge devices for br-ahwlan — these conflict with the
+# named ahwlan_dev and cause bat0 to be left out of the bridge.
+i=0
+while uci get network.@device[$i] >/dev/null 2>&1; do
+    dev_name=$(uci get network.@device[$i].name 2>/dev/null)
+    if [ "$dev_name" = "br-ahwlan" ]; then
+        echo "  Removing conflicting anonymous device[$i] for br-ahwlan"
+        uci delete network.@device[$i]
+        continue
+    fi
+    i=$((i + 1))
+done
+
+# Named bridge device with bat0 — explicit ports list (not add_list, to avoid dupes)
 uci set network.ahwlan_dev=device
 uci set network.ahwlan_dev.name='br-ahwlan'
 uci set network.ahwlan_dev.type='bridge'
-uci add_list network.ahwlan_dev.ports='bat0' 2>/dev/null || true
+uci delete network.ahwlan_dev.ports 2>/dev/null || true
+uci add_list network.ahwlan_dev.ports='bat0'
 uci commit network
 
 echo "[5/6] Configuring DHCP server..."

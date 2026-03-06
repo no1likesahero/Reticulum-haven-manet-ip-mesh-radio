@@ -96,8 +96,9 @@ uci set network.ahwlan.ipaddr="$MESH_IP"
 uci set network.ahwlan.netmask="$MESH_NETMASK"
 uci set network.ahwlan.gateway="$GATEWAY_IP"
 uci set network.ahwlan.dns="$DNS_SERVERS"
-uci set network.ahwlan.type='bridge'
 uci set network.ahwlan.delegate='0'
+# NOTE: Do NOT set network.ahwlan.type='bridge' — it auto-creates anonymous
+# bridge devices that conflict with our explicit ahwlan_dev definition.
 
 # Remove any anonymous bridge devices for br-ahwlan that lack bat0 port.
 # These conflict with the named ahwlan_dev and cause bat0 to be left out
@@ -117,7 +118,8 @@ done
 uci set network.ahwlan_dev=device
 uci set network.ahwlan_dev.name='br-ahwlan'
 uci set network.ahwlan_dev.type='bridge'
-uci add_list network.ahwlan_dev.ports='bat0' 2>/dev/null || true
+uci delete network.ahwlan_dev.ports 2>/dev/null || true
+uci add_list network.ahwlan_dev.ports='bat0'
 
 uci commit network
 

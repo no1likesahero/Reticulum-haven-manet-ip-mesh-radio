@@ -18,6 +18,7 @@ Automated setup scripts for configuring Haven mesh nodes.
 | `setup-haven-point.sh` | Configure extender node | Additional nodes |
 | `setup-reticulum.sh` | Install encrypted mesh overlay | Any node (optional) |
 | `configure-heltec.sh` | Configure Heltec HaLow node for BATMAN-adv mesh | Heltec v2 nodes |
+| `haven-bridge-check.sh` | Boot-time health check — auto-repairs BATMAN bridge | All mesh nodes |
 | `setup-cot-bridge.sh` | Install ATAK/CivTAK bridge | Any node (optional) |
 | `rns_status.py` | Live Reticulum + HaLow network dashboard | Any node |
 | `rns_send.py` | Send a message over Reticulum | Sender node |
@@ -320,7 +321,7 @@ After reboot, the node is reachable at `MESH_IP` on the mesh network.
 | `MESH_ID` | haven | Mesh network name |
 | `MESH_KEY` | havenmesh | Mesh encryption key |
 | `MESH_IP` | 10.41.0.1 | Initial node IP (openmanetd may reassign) |
-| `HALOW_CHANNEL` | 28 | HaLow channel (916 MHz) |
+| `HALOW_CHANNEL` | 27 | HaLow channel (914 MHz) |
 | `HALOW_HTMODE` | HT20 | Channel width (2 MHz) |
 
 ### Point Node Defaults (blue)
@@ -406,20 +407,30 @@ After setup and reboot, you can manage each node through its web interface.
 
 > **Finding mesh IPs:** OpenMANET dynamically assigns mesh IPs on all nodes. Run `uci get network.ahwlan.ipaddr` on any node to find its current IP, or check the boot screen on a connected monitor.
 
-#### Finding Blue (Point) Node IPs from Green (Gate)
+#### Finding Node IPs from the Gate
 
-SSH into green (gate) and run:
+SSH into the gate and use the method that matches your node type:
 
+**OpenMANET nodes** (gate, point — running OpenMANET firmware):
 ```bash
-strings /etc/openmanetd/openmanetd.db | grep blue
+strings /etc/openmanetd/openmanetd.db | grep -E 'green|blue'
 ```
-
-This returns blue's MAC address, hostname, and current mesh IP:
+Returns each node's MAC, hostname, and mesh IP:
 ```
 2c:c6:82:8a:2a:f6 blue 10.41.126.198
 ```
 
-Use the IP at the end to access blue's web interface.
+**OpenWrt nodes** (Heltec HaLow — not in the OpenMANET database):
+```bash
+# DHCP leases — shows all devices that received an IP from the gate
+cat /tmp/dhcp.leases
+
+# ARP neighbors — shows all IPs reachable on the mesh bridge
+ip neigh show dev br-ahwlan
+
+# BATMAN translation table — shows all MACs reachable via mesh
+batctl tg
+```
 
 **Gate Node (green)** — default password: `havengreen`
 
@@ -474,9 +485,166 @@ Your device connects to the Haven node's WiFi AP, then talks to the mesh through
 - Verify `MESH_ID`, `MESH_KEY`, `HALOW_CHANNEL` match exactly on all nodes
 - Check HaLow radio: `iwinfo wlan0 info`
 
-### No Internet on Point Nodes
-- Verify gateway route: `ip route | grep default`
-- Test: `ping <gate-mesh-ip>` then `ping 8.8.8.8`
+### No Internet on Point/Heltec Nodes
+
+WiFi clients connect to a node's AP but have no internet. This is almost always a BATMAN-adv bridge issue on one of the nodes. Work through these steps **in order** — SSH into each node and check.
+
+#### Quick diagnosis from any node
+
+```bash
+# 1. Can you reach the gate?
+ping -c 2 10.41.0.3
+
+# 2. Can the gate reach the internet?
+# (SSH to gate first: ssh root@192.168.0.66)
+ping -c 2 8.8.8.8
+
+# 3. Is BATMAN seeing neighbors?
+batctl n
+
+# 4. Is bat0 in the bridge?
+ip link show bat0        # look for "master br-ahwlan"
+
+# 5. Does br-ahwlan have an IP?
+ip addr show br-ahwlan   # should show 10.41.x.x
+```
+
+If any of those fail, follow the fix steps below.
+
+#### Fix 1: Run the health check (fastest)
+
+The `haven-bridge-check.sh` init script checks and auto-repairs the three most common failures. Run it on the broken node:
+
+```bash
+sh /etc/init.d/haven-bridge-check
+```
+
+It will report what it finds and fix:
+- `bat0` missing from `br-ahwlan` bridge
+- Mesh radio pointing to `ahwlan` instead of `batmesh`
+- Missing `batmesh` hardif interface
+
+If it says "All checks passed" but internet still doesn't work, continue to Fix 2.
+
+#### Fix 2: Manual bridge repair
+
+If the health check didn't fix it, do it manually:
+
+```bash
+# Check if bat0 is in the bridge
+ip link show bat0
+# Should say: master br-ahwlan
+# If it says: master bat0 — that's wrong, wlan0 is going direct
+
+# Check what the mesh radio points to
+uci show wireless | grep network | grep mesh
+# Should be: network='batmesh'
+# If it says: network='ahwlan' — that's the problem
+
+# Fix it:
+uci set wireless.<mesh_iface>.network='batmesh'
+uci set wireless.<mesh_iface>.mesh_fwding='0'
+uci commit wireless
+
+# Ensure batmesh hardif exists
+uci set network.batmesh=interface
+uci set network.batmesh.proto='batadv_hardif'
+uci set network.batmesh.master='bat0'
+uci commit network
+
+# Restart
+wifi down && service network restart && sleep 3 && wifi up
+
+# Verify
+batctl if          # should show: wlan0: active
+ip link show bat0  # should show: master br-ahwlan
+```
+
+#### Fix 3: Anonymous bridge device conflict
+
+OpenWrt can auto-create anonymous bridge devices that shadow the named one and leave `bat0` out of the bridge. This is the most common root cause.
+
+```bash
+# Check for anonymous devices
+uci show network | grep '@device'
+# If you see @device[N].name='br-ahwlan' — that's the conflict
+
+# Remove all anonymous br-ahwlan devices
+i=0
+while uci get network.@device[$i] 2>/dev/null; do
+    name=$(uci get network.@device[$i].name 2>/dev/null)
+    if [ "$name" = "br-ahwlan" ]; then
+        uci delete network.@device[$i]
+        echo "Deleted anonymous device[$i]"
+        continue
+    fi
+    i=$((i + 1))
+done
+
+# Recreate the named bridge device
+uci set network.ahwlan_dev=device
+uci set network.ahwlan_dev.name='br-ahwlan'
+uci set network.ahwlan_dev.type='bridge'
+uci delete network.ahwlan_dev.ports 2>/dev/null
+uci add_list network.ahwlan_dev.ports='bat0'
+uci commit network
+
+service network restart
+```
+
+#### Fix 4: Gate-specific — check upstream internet
+
+The gate forwards internet from `eth0` to the mesh. If the gate itself has no internet:
+
+```bash
+# On the gate:
+ping -c 2 8.8.8.8               # upstream connectivity
+ip route | grep default          # should go via eth0
+ip addr show eth0                # should have upstream IP
+
+# If eth0 lost its IP, restart networking:
+service network restart
+
+# Check NAT is enabled:
+uci show firewall | grep masq    # should show masq='1'
+```
+
+#### Fix 5: Nuclear option — re-run setup
+
+If nothing else works, re-run the setup script for the node type:
+- **Gate:** `sh setup-haven-gate.sh && reboot`
+- **Point:** `sh setup-haven-point.sh && reboot`
+- **Heltec:** `sh configure-heltec.sh && reboot`
+
+### Installing the Boot Health Check
+
+The `haven-bridge-check.sh` script auto-repairs the mesh on every boot. Install it on each node:
+
+```bash
+# From your computer — install on the gate:
+scp haven-bridge-check.sh root@<gate-ip>:/etc/init.d/haven-bridge-check
+ssh root@<gate-ip> "chmod +x /etc/init.d/haven-bridge-check && /etc/init.d/haven-bridge-check enable"
+
+# For Heltec/point nodes (via gate as jump host):
+scp -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" haven-bridge-check.sh root@<node-mesh-ip>:/etc/init.d/haven-bridge-check
+ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<node-mesh-ip> "chmod +x /etc/init.d/haven-bridge-check && /etc/init.d/haven-bridge-check enable"
+```
+
+Check the log after a reboot:
+```bash
+logread | grep haven-mesh
+```
+
+### Why Does the Bridge Break?
+
+OpenWrt manages bridge devices in two ways:
+
+1. **Anonymous `@device[N]`** — auto-created when `type='bridge'` is set on an interface, or when the `wifi` command regenerates config, or during firmware upgrades. These have no `ports` list.
+2. **Named `ahwlan_dev`** — our explicit definition with `bat0` as a port.
+
+When both exist, the anonymous one takes priority and `bat0` gets left out of the bridge. The mesh radio still works at layer 2 (BATMAN neighbors are visible) but there's no IP connectivity because `bat0` isn't bridged.
+
+The setup scripts and boot health check prevent this by cleaning up anonymous devices and always re-asserting the correct named device.
 
 ### Reticulum Issues
 - Check status: `python3 /root/rns_status.py`
