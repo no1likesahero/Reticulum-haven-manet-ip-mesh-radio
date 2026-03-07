@@ -422,7 +422,13 @@ Two ways to get a terminal on the node:
 
 <img src="../assets/luci-terminal-ip.png" alt="LuCI terminal showing uci get network.ahwlan.ipaddr" width="500">
 
-Use this when you can already reach the node but need to confirm its IP for other tools.
+To find the node's MAC address instead:
+```bash
+cat /sys/class/net/wlan0/address    # HaLow mesh radio MAC
+cat /sys/class/net/eth0/address     # Ethernet MAC
+```
+
+Use this when you can already reach the node but need to confirm its IP or MAC for other tools.
 
 **Method 2: Query from the gate**
 
