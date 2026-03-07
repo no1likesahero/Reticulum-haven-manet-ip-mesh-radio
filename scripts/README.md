@@ -405,48 +405,52 @@ MCS 8–9 (256-QAM): **MM8108 only**.
 
 After setup and reboot, you can manage each node through its web interface.
 
-#### Finding Node IPs
+#### Finding Node IPs and Accessing Nodes
 
-There are several ways to find a node's mesh IP. Use whichever works for your situation.
+There are several ways to find and connect to your nodes. Start with the easiest and work down.
 
-**Method 1: HDMI monitor**
+**Method 1: Run a command on the node**
 
-Connect a monitor to the node. The boot screen shows the IP at the bottom — look for the `br-ahwlan` line after `inet`:
+If you already have a terminal on the node (SSH, serial, or LuCI terminal):
+```bash
+uci get network.ahwlan.ipaddr
+```
+This prints the node's mesh IP directly. Use this when you can already reach the node but need to know its IP for other tools.
+
+**Method 2: Query from the gate**
+
+If you can access the gate but need to find other nodes on the mesh:
+
+```bash
+# OpenMANET nodes (gate, point) — lists all known nodes with MAC, hostname, and IP
+strings /etc/openmanetd/openmanetd.db
+
+# All node types — shows DHCP leases (any device that got an IP from the gate)
+cat /tmp/dhcp.leases
+
+# All node types — shows ARP neighbors currently reachable on the mesh
+ip neigh show dev br-ahwlan
+```
+
+The `strings` command only shows OpenMANET nodes (gate, point). Heltec/OpenWrt nodes won't appear there — use `cat /tmp/dhcp.leases` or `ip neigh` for those.
+
+**Method 3: Connect to the node's WiFi**
+
+Connect your computer to the node's WiFi AP (e.g. `green-5ghz`, `blue-5ghz`, `heltec-5`). If the mesh is working, DHCP will give your computer a `10.41.x.x` address. Check the **Router** field in your network settings — that's the node's IP. Browse to `http://<router-ip>`.
+
+**Method 4: HDMI monitor + static IP (node not on the mesh)**
+
+If the node isn't on the mesh yet (no gate, first-time setup, or misconfigured), connecting to its WiFi will give you a `169.254.x.x` self-assigned IP because there's no DHCP server. To get in:
+
+1. **Connect a monitor** to the node via HDMI. The boot screen shows the IP at the bottom — look for the `br-ahwlan` line after `inet`:
 
 <img src="../assets/point-boot-screen.JPG" alt="Point node boot screen" width="500">
 
 <img src="../assets/point-boot-ip.JPG" alt="Point node IP on boot screen" width="500">
 
-**Method 2: On the node itself**
+2. **Connect to the node's WiFi** (or plug in via Ethernet)
 
-If you can SSH or open a terminal on the node:
-```bash
-uci get network.ahwlan.ipaddr
-```
-
-**Method 3: From the gate**
-
-SSH into the gate and query based on node type:
-
-```bash
-# OpenMANET nodes (gate, point) — query the OpenMANET database
-strings /etc/openmanetd/openmanetd.db
-# Output: 2c:c6:82:8a:2a:f6 blue 10.41.126.198
-
-# OpenWrt nodes (Heltec HaLow) — check DHCP leases
-cat /tmp/dhcp.leases
-
-# All node types — check ARP neighbors on the mesh bridge
-ip neigh show dev br-ahwlan
-```
-
-**Method 4: Static IP when your device can't get an address**
-
-If you connect to a node's WiFi and your computer gets a `169.254.x.x` self-assigned IP, the gate isn't reachable to serve DHCP. You can still access the node by setting a static IP on your computer:
-
-1. Find the node's IP using Method 1 (HDMI monitor)
-2. Connect to the node's WiFi
-3. Set your computer's WiFi adapter to a static IP on the same subnet:
+3. **Set a static IP** on your computer on the same subnet as the node:
    - **Configure IPv4**: Manually
    - **IP Address**: same as the node but change the last number (e.g. `10.41.126.199`)
    - **Subnet Mask**: `255.255.0.0`
@@ -454,9 +458,35 @@ If you connect to a node's WiFi and your computer gets a `169.254.x.x` self-assi
 
 <img src="../assets/wifi-static-ip.png" alt="macOS WiFi static IP configuration" width="500">
 
-4. Browse to `http://<node-ip>` — LuCI should load
+4. **Browse to** `http://<node-ip>` — LuCI should load
 
 > **Remember** to set your WiFi back to DHCP (automatic) when you're done.
+
+**Method 5: SSH through the gate (Heltec/OpenWrt nodes)**
+
+Heltec HaLow nodes running OpenWrt aren't in the OpenMANET database and may not be directly reachable from your computer. You can reach them by jumping through the gate:
+
+1. Find the Heltec node's IP from the gate: `cat /tmp/dhcp.leases`
+2. SSH through the gate using ProxyCommand:
+```bash
+ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<node-mesh-ip>
+```
+3. Or with `sshpass` for scripting:
+```bash
+sshpass -p '<node-pw>' ssh -o StrictHostKeyChecking=no \
+  -o ProxyCommand="sshpass -p '<gate-pw>' ssh -o StrictHostKeyChecking=no -W %h:%p root@<gate-ip>" \
+  root@<node-mesh-ip>
+```
+
+This is how you manage Heltec nodes that are only reachable on the mesh — your computer talks to the gate over your LAN, and the gate forwards the connection over the mesh to the Heltec node.
+
+**Method 6: Connect directly to a Heltec node's WiFi**
+
+Heltec nodes have a 2.4GHz WiFi AP and a separate LAN on `10.42.0.0/24`. Connect to the Heltec's WiFi and SSH to `10.42.0.1`:
+```bash
+ssh root@10.42.0.1
+```
+This bypasses the mesh entirely — useful for initial setup or when the mesh is down. The default password is `heltec.org` unless you changed it.
 
 **Gate Node (green)** — default password: `havengreen`
 
