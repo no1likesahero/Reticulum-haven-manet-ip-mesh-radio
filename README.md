@@ -152,31 +152,7 @@ See [ATAK/README.md](ATAK/README.md) for peering, dashboards, and troubleshootin
 
 ### Finding Node IPs
 
-**OpenMANET nodes** (gate, point — running OpenMANET firmware):
-
-```bash
-# On the node itself
-uci get network.ahwlan.ipaddr
-
-# From any node — query the OpenMANET database
-strings /etc/openmanetd/openmanetd.db | grep -E 'green|blue'
-# Output: 2c:c6:82:8a:2a:f6 blue 10.41.126.198
-```
-
-**OpenWrt nodes** (Heltec HaLow — not in the OpenMANET database):
-
-```bash
-# DHCP leases — shows all devices that received an IP from the gate
-cat /tmp/dhcp.leases
-
-# ARP neighbors — shows all IPs reachable on the mesh bridge
-ip neigh show dev br-ahwlan
-
-# BATMAN translation table — shows all MACs reachable via mesh
-batctl tg
-```
-
-You can also check the boot screen on a connected monitor for any node type.
+See [scripts/README.md → Finding Node IPs](scripts/README.md#finding-node-ips-from-the-gate) for all methods including HDMI monitor discovery, OpenMANET database queries, DHCP leases, and setting a static IP when your device can't get an address automatically.
 
 **Default credentials** (user: `root`):
 

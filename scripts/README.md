@@ -335,7 +335,7 @@ After reboot, the node is reachable at `MESH_IP` on the mesh network.
 
 > **Note:** OpenMANET's address reservation system manages mesh IPs on all nodes after setup. The defaults above are initial values — the final IPs may differ. Run `uci get network.ahwlan.ipaddr` on any node to find its current mesh IP, or check the boot screen on a connected monitor. To discover the IPs of all mesh nodes from any node, run:
 > ```
-> strings /etc/openmanetd/openmanetd.db | grep -E 'green|blue'
+> strings /etc/openmanetd/openmanetd.db
 > ```
 > This prints each node's MAC address, hostname, and current mesh IP.
 
@@ -405,32 +405,58 @@ MCS 8–9 (256-QAM): **MM8108 only**.
 
 After setup and reboot, you can manage each node through its web interface.
 
-> **Finding mesh IPs:** OpenMANET dynamically assigns mesh IPs on all nodes. Run `uci get network.ahwlan.ipaddr` on any node to find its current IP, or check the boot screen on a connected monitor.
+#### Finding Node IPs
 
-#### Finding Node IPs from the Gate
+There are several ways to find a node's mesh IP. Use whichever works for your situation.
 
-SSH into the gate and use the method that matches your node type:
+**Method 1: HDMI monitor**
 
-**OpenMANET nodes** (gate, point — running OpenMANET firmware):
+Connect a monitor to the node. The boot screen shows the IP at the bottom — look for the `br-ahwlan` line after `inet`:
+
+<img src="../assets/point-boot-screen.JPG" alt="Point node boot screen" width="500">
+
+<img src="../assets/point-boot-ip.JPG" alt="Point node IP on boot screen" width="500">
+
+**Method 2: On the node itself**
+
+If you can SSH or open a terminal on the node:
 ```bash
-strings /etc/openmanetd/openmanetd.db | grep -E 'green|blue'
-```
-Returns each node's MAC, hostname, and mesh IP:
-```
-2c:c6:82:8a:2a:f6 blue 10.41.126.198
+uci get network.ahwlan.ipaddr
 ```
 
-**OpenWrt nodes** (Heltec HaLow — not in the OpenMANET database):
+**Method 3: From the gate**
+
+SSH into the gate and query based on node type:
+
 ```bash
-# DHCP leases — shows all devices that received an IP from the gate
+# OpenMANET nodes (gate, point) — query the OpenMANET database
+strings /etc/openmanetd/openmanetd.db
+# Output: 2c:c6:82:8a:2a:f6 blue 10.41.126.198
+
+# OpenWrt nodes (Heltec HaLow) — check DHCP leases
 cat /tmp/dhcp.leases
 
-# ARP neighbors — shows all IPs reachable on the mesh bridge
+# All node types — check ARP neighbors on the mesh bridge
 ip neigh show dev br-ahwlan
-
-# BATMAN translation table — shows all MACs reachable via mesh
-batctl tg
 ```
+
+**Method 4: Static IP when your device can't get an address**
+
+If you connect to a node's WiFi and your computer gets a `169.254.x.x` self-assigned IP, the gate isn't reachable to serve DHCP. You can still access the node by setting a static IP on your computer:
+
+1. Find the node's IP using Method 1 (HDMI monitor)
+2. Connect to the node's WiFi
+3. Set your computer's WiFi adapter to a static IP on the same subnet:
+   - **Configure IPv4**: Manually
+   - **IP Address**: same as the node but change the last number (e.g. `10.41.126.199`)
+   - **Subnet Mask**: `255.255.0.0`
+   - **Router**: the node's IP (e.g. `10.41.126.198`)
+
+<img src="../assets/wifi-static-ip.png" alt="macOS WiFi static IP configuration" width="500">
+
+4. Browse to `http://<node-ip>` — LuCI should load
+
+> **Remember** to set your WiFi back to DHCP (automatic) when you're done.
 
 **Gate Node (green)** — default password: `havengreen`
 
@@ -480,43 +506,6 @@ Your device connects to the Haven node's WiFi AP, then talks to the mesh through
 - If the gate is plugged into your home router, you don't need to switch WiFi — stay on your regular home network
 - Find the gate's IP in your router's device list (look for a device named "green")
 - Browse to `http://<that-ip>` — this reaches the gate's management interface via Ethernet, bypassing WiFi entirely
-
-### Can't Reach Point Node's Web Interface (Self-Assigned IP)
-
-If you connect to the point node's WiFi or Ethernet and your computer gets a `169.254.x.x` self-assigned IP instead of a `10.41.x.x` mesh IP, the node isn't serving DHCP — the gate handles DHCP for the whole mesh, and if the point isn't connected to the gate yet, there's no DHCP server.
-
-You can still access the node by finding its IP and setting a static IP on your computer.
-
-**Step 1: Find the node's mesh IP**
-
-Connect a monitor to the node via HDMI. The boot screen shows the node's IP at the bottom:
-
-<img src="../assets/point-boot-screen.JPG" alt="Point node boot screen" width="500">
-
-Look for the `br-ahwlan` line — the IP is shown after `inet`:
-
-<img src="../assets/point-boot-ip.JPG" alt="Point node IP on boot screen" width="500">
-
-In this example the node's IP is `10.41.126.198`.
-
-> **No monitor?** Try common defaults: `10.41.254.1`, `10.41.0.2`, or `192.168.1.1`. Or if the gate is running, find the point's IP from the gate with `strings /etc/openmanetd/openmanetd.db | grep blue`.
-
-**Step 2: Set a static IP on your computer**
-
-Connect to the node's WiFi (e.g. `blue-5ghz`), then configure your WiFi adapter with a static IP on the same subnet:
-
-- **Configure IPv4**: Manually
-- **IP Address**: `<node-ip-last-octet + 1>` (e.g. `10.41.126.199`)
-- **Subnet Mask**: `255.255.0.0`
-- **Router**: `<node-ip>` (e.g. `10.41.126.198`)
-
-<img src="../assets/wifi-static-ip.png" alt="macOS WiFi static IP configuration" width="500">
-
-**Step 3: Browse to the node**
-
-Open `http://<node-ip>` (e.g. `http://10.41.126.198`) — LuCI should load.
-
-> **Remember** to set your WiFi back to DHCP (automatic) when you're done, or you won't be able to connect to other networks normally.
 
 ### Nodes Can't Connect
 - Verify `MESH_ID`, `MESH_KEY`, `HALOW_CHANNEL` match exactly on all nodes
