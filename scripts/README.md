@@ -411,11 +411,18 @@ There are several ways to find and connect to your nodes. Start with the easiest
 
 **Method 1: Run a command on the node**
 
-If you already have a terminal on the node (SSH, serial, or LuCI terminal):
+If you can reach the node's web interface or SSH into it, run this command to print its mesh IP:
 ```bash
 uci get network.ahwlan.ipaddr
 ```
-This prints the node's mesh IP directly. Use this when you can already reach the node but need to know its IP for other tools.
+
+Two ways to get a terminal on the node:
+- **SSH from your computer:** `ssh root@<node-ip>` (use the node's password)
+- **LuCI web terminal:** browse to `http://<node-ip>`, then go to **Services → Terminal**. Log in as `root` with the node's password.
+
+<img src="../assets/luci-terminal-ip.png" alt="LuCI terminal showing uci get network.ahwlan.ipaddr" width="500">
+
+Use this when you can already reach the node but need to confirm its IP for other tools.
 
 **Method 2: Query from the gate**
 
@@ -482,10 +489,11 @@ This is how you manage Heltec nodes that are only reachable on the mesh — your
 
 **Method 6: Connect directly to a Heltec node's WiFi**
 
-Heltec nodes have a 2.4GHz WiFi AP and a separate LAN on `10.42.0.0/24`. Connect to the Heltec's WiFi and SSH to `10.42.0.1`:
-```bash
-ssh root@10.42.0.1
-```
+Heltec nodes have a 2.4GHz WiFi AP and a separate LAN on `10.42.0.0/24`. Connect to the Heltec's WiFi, then:
+
+- **Web interface:** browse to `http://10.42.0.1`
+- **SSH:** `ssh root@10.42.0.1`
+
 This bypasses the mesh entirely — useful for initial setup or when the mesh is down. The default password is `heltec.org` unless you changed it.
 
 **Gate Node (green)** — default password: `havengreen`
