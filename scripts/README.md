@@ -481,6 +481,43 @@ Your device connects to the Haven node's WiFi AP, then talks to the mesh through
 - Find the gate's IP in your router's device list (look for a device named "green")
 - Browse to `http://<that-ip>` — this reaches the gate's management interface via Ethernet, bypassing WiFi entirely
 
+### Can't Reach Point Node's Web Interface (Self-Assigned IP)
+
+If you connect to the point node's WiFi or Ethernet and your computer gets a `169.254.x.x` self-assigned IP instead of a `10.41.x.x` mesh IP, the node isn't serving DHCP — the gate handles DHCP for the whole mesh, and if the point isn't connected to the gate yet, there's no DHCP server.
+
+You can still access the node by finding its IP and setting a static IP on your computer.
+
+**Step 1: Find the node's mesh IP**
+
+Connect a monitor to the node via HDMI. The boot screen shows the node's IP at the bottom:
+
+<img src="../assets/point-boot-screen.JPG" alt="Point node boot screen" width="500">
+
+Look for the `br-ahwlan` line — the IP is shown after `inet`:
+
+<img src="../assets/point-boot-ip.JPG" alt="Point node IP on boot screen" width="500">
+
+In this example the node's IP is `10.41.126.198`.
+
+> **No monitor?** Try common defaults: `10.41.254.1`, `10.41.0.2`, or `192.168.1.1`. Or if the gate is running, find the point's IP from the gate with `strings /etc/openmanetd/openmanetd.db | grep blue`.
+
+**Step 2: Set a static IP on your computer**
+
+Connect to the node's WiFi (e.g. `blue-5ghz`), then configure your WiFi adapter with a static IP on the same subnet:
+
+- **Configure IPv4**: Manually
+- **IP Address**: `<node-ip-last-octet + 1>` (e.g. `10.41.126.199`)
+- **Subnet Mask**: `255.255.0.0`
+- **Router**: `<node-ip>` (e.g. `10.41.126.198`)
+
+<img src="../assets/wifi-static-ip.png" alt="macOS WiFi static IP configuration" width="500">
+
+**Step 3: Browse to the node**
+
+Open `http://<node-ip>` (e.g. `http://10.41.126.198`) — LuCI should load.
+
+> **Remember** to set your WiFi back to DHCP (automatic) when you're done, or you won't be able to connect to other networks normally.
+
 ### Nodes Can't Connect
 - Verify `MESH_ID`, `MESH_KEY`, `HALOW_CHANNEL` match exactly on all nodes
 - Check HaLow radio: `iwinfo wlan0 info`

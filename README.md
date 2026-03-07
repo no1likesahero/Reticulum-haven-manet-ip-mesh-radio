@@ -152,16 +152,31 @@ See [ATAK/README.md](ATAK/README.md) for peering, dashboards, and troubleshootin
 
 ### Finding Node IPs
 
-OpenMANET dynamically assigns mesh IPs. To find any node's IP:
+**OpenMANET nodes** (gate, point — running OpenMANET firmware):
 
-- **On the node itself:** `uci get network.ahwlan.ipaddr`
-- **From any node on the mesh:** `strings /etc/openmanetd/openmanetd.db | grep -E 'green|blue'`
-- **Visually:** Check the boot screen on a connected monitor
+```bash
+# On the node itself
+uci get network.ahwlan.ipaddr
 
-Example `strings` output:
+# From any node — query the OpenMANET database
+strings /etc/openmanetd/openmanetd.db | grep -E 'green|blue'
+# Output: 2c:c6:82:8a:2a:f6 blue 10.41.126.198
 ```
-2c:c6:82:8a:2a:f6 blue 10.41.126.198
+
+**OpenWrt nodes** (Heltec HaLow — not in the OpenMANET database):
+
+```bash
+# DHCP leases — shows all devices that received an IP from the gate
+cat /tmp/dhcp.leases
+
+# ARP neighbors — shows all IPs reachable on the mesh bridge
+ip neigh show dev br-ahwlan
+
+# BATMAN translation table — shows all MACs reachable via mesh
+batctl tg
 ```
+
+You can also check the boot screen on a connected monitor for any node type.
 
 **Default credentials** (user: `root`):
 
@@ -208,7 +223,7 @@ Max PHY rate depends on the HaLow SoC. Haven ships with the **MM6108** (MCS 0–
 > Real-world throughput is typically 40–60% of PHY rate. See [scripts/README.md](scripts/README.md#channel-width-vs-range) for the full MCS reference table.
 
 ### Default Configuration
-- **Channel**: 28 (916 MHz center frequency)
+- **Channel**: 27 (914 MHz center frequency)
 - **Width**: 2 MHz (HT20)
 - **Encryption**: WPA3 SAE (CCMP)
 
