@@ -151,6 +151,12 @@ Directional antennas only help when:
 
 > **Recommendation:** Use RHCP on both ends if possible. Fall back to omni whip (Muzi, Alfa) for general use. Reserve directional for fixed long-range point-to-point links only.
 
+### Antenna Diversity (Automatic Switching)
+
+Instead of choosing one antenna, you can connect two antennas via an RF SPDT switch (e.g. HMC349) and let the node automatically select the best one. The `antenna_diversity.py` daemon monitors SNR and switches between antennas based on link quality — the node gets the best of both antennas without manual intervention.
+
+This is especially useful when pairing antennas with different strengths (e.g. RHCP for multipath environments + omni for open areas). See [Antenna Diversity](antenna-diversity.md) for hardware wiring and setup.
+
 ## SNR Requirements by MCS Rate
 
 The radio automatically selects the best MCS rate for the current SNR. Understanding the thresholds helps predict when the link will degrade:
@@ -204,5 +210,6 @@ Drive or walk away from the gate and listen:
 2. **Use 1 MHz channel width** on all nodes
 3. **Use 27 dBm hardware** if available
 4. **Use omni or RHCP antennas** for mobile use
-5. **Check noise floor** and pick a clean channel
-6. **Test with `halow_monitor.py`** to find your actual coverage area
+5. **Add antenna diversity** with an RF switch for automatic best-antenna selection ([guide](antenna-diversity.md))
+6. **Check noise floor** and pick a clean channel
+7. **Test with `halow_monitor.py`** to find your actual coverage area
