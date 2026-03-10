@@ -26,14 +26,55 @@ Practical tips for maximizing HaLow (802.11ah) mesh range based on real-world fi
 
 HaLow supports 1, 2, 4, and 8 MHz channel widths. Narrower = more range, less throughput.
 
-| Width | Noise Floor | Throughput (MCS 7) | Range |
-|-------|-----------|-------------------|-------|
-| 8 MHz | -97 dBm | 18 Mbps | Shortest |
-| 4 MHz | -100 dBm | 9 Mbps | +3 dB |
-| 2 MHz | -103 dBm | 4.5 Mbps | +6 dB |
-| **1 MHz** | **-106 dBm** | **3 Mbps** | **+9 dB (best)** |
+### Why Narrower Channels Increase Range
+
+A radio receiver's noise floor is determined by physics: **thermal noise = kTB** (Boltzmann's constant x temperature x bandwidth). Halving the bandwidth drops the noise floor by 3 dB, which directly increases SNR and therefore range — without changing anything about your transmitter or antennas.
+
+This relationship is identical for both the MM6108 and MM8108 — it's a property of the RF front-end and physics, not the digital modem. Both chips benefit equally from narrowing the channel.
+
+```
+Noise Floor vs. Channel Width (at room temperature)
+
+  -94 ┤
+      │                                              ██████████  8 MHz
+  -97 ┤                                              ██████████  -97 dBm
+      │
+ -100 ┤                              ██████████                  4 MHz
+      │                              ██████████                  -100 dBm
+ -103 ┤              ██████████                                  2 MHz
+      │              ██████████                                  -103 dBm
+ -106 ┤  ██████████                                              1 MHz
+      │  ██████████                                              -106 dBm
+ -109 ┤
+      └──────────────────────────────────────────────────────
+         1 MHz       2 MHz       4 MHz       8 MHz
+
+      Every halving of bandwidth = 3 dB lower noise floor = ~40% more range
+```
+
+### Channel Width Comparison
+
+| Width | Setting | Noise Floor | SNR Gain | MM6108 Max | MM8108 Max | Use Case |
+|-------|---------|-------------|----------|------------|------------|----------|
+| **1 MHz** | HT10 | **-106 dBm** | **+9 dB** | 3.3 Mbps | 4.4 Mbps | Maximum range, messaging, telemetry |
+| 2 MHz | HT20 | -103 dBm | +6 dB | 7.2 Mbps | 8.7 Mbps | Good balance of range and throughput |
+| 4 MHz | HT40 | -100 dBm | +3 dB | 15.0 Mbps | 20.0 Mbps | Higher throughput, moderate range |
+| 8 MHz | HT80 | -97 dBm | baseline | 32.5 Mbps | 43.3 Mbps | Maximum throughput, shortest range |
 
 Going from 8 MHz to 1 MHz gives **~9 dB of SNR improvement** — equivalent to roughly 2-3x more range. The 3 Mbps throughput at 1 MHz is more than enough for most applications.
+
+### Receiver Sensitivity by Channel Width
+
+Receiver sensitivity tells you the weakest signal the radio can decode at each MCS rate. These values apply to both MM6108 and MM8108 for MCS 0-7 (the MM8108 adds MCS 8-9):
+
+| MCS | Modulation | 1 MHz | 2 MHz | 4 MHz | 8 MHz |
+|-----|-----------|------:|------:|------:|------:|
+| 0 | BPSK | -106 dBm | -103 dBm | -102 dBm | -98 dBm |
+| 7 | 64-QAM 5/6 | -89 dBm | -86 dBm | -83 dBm | -80 dBm |
+| 9 | 256-QAM 5/6 (MM8108 only) | -83 dBm | — | -78 dBm | -74 dBm |
+| 10 | BPSK repeated (1 MHz only) | -109 dBm | — | — | — |
+
+> MCS 10 at 1 MHz is the extreme range mode — 150 kbps at -109 dBm sensitivity, operating at nearly 0 dB SNR. Enough for text, telemetry, and mesh keepalives.
 
 **1 MHz also unlocks MCS 10**, a special ultra-low-rate mode (150 kbps) that can operate at nearly 0 dB SNR, squeezing out maximum range.
 
