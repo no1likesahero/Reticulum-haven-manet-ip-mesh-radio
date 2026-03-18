@@ -466,10 +466,10 @@ If the node isn't on the mesh yet (no gate, first-time setup, or misconfigured),
 3. **Set a static IP** on your computer on the same subnet as the node:
    - **Configure IPv4**: Manually
    - **IP Address**: same as the node but change the last number (e.g. `10.41.126.199`)
-   - **Subnet Mask**: `255.255.0.0`
+   - **Subnet Mask**: `255.255.255.0`
    - **Router**: the node's IP (e.g. `10.41.126.198`)
 
-<img src="../assets/wifi-static-ip.png" alt="macOS WiFi static IP configuration" width="500">
+<img src="../assets/meshpoint-wifi-settings.png" alt="macOS WiFi static IP configuration" width="500">
 
 4. **Browse to** `http://<node-ip>` — LuCI should load
 
