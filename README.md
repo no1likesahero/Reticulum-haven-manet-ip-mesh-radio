@@ -170,7 +170,7 @@ For manual configuration without the setup scripts:
 | [docs/haven-gate.md](docs/haven-gate.md) | Gate node manual configuration |
 | [docs/haven-point.md](docs/haven-point.md) | Point node manual configuration |
 | [docs/range-optimization.md](docs/range-optimization.md) | Range optimization guide |
-| [docs/antenna-diversity.md](docs/antenna-diversity.md) | Automatic antenna switching with RF switch |
+| [docs/antenna-smart-routing.md](docs/antenna-smart-routing.md) | Automatic antenna switching with RF switch |
 | [Reticulum/README.md](Reticulum/README.md) | Reticulum configuration and usage |
 | [ATAK/README.md](ATAK/README.md) | ATAK/CivTAK bridge setup |
 

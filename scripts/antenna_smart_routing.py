@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Antenna Diversity Daemon — lazy RF switch controller for Haven nodes.
+Antenna Smart Routing Daemon — lazy RF switch controller for Haven nodes.
 
 Controls an HMC349/HMC849 SPDT RF switch to select the best antenna.
 Uses a "don't fix what ain't broke" algorithm:
@@ -14,10 +14,10 @@ Supports two control methods:
   --gpio 17               Direct RPi GPIO pin (sysfs)
 
 Usage:
-    python3 /root/antenna_diversity.py --serial /dev/ttyUSB0
-    python3 /root/antenna_diversity.py --serial /dev/ttyUSB0 --invert
-    python3 /root/antenna_diversity.py --serial /dev/ttyUSB0 --dry-run
-    python3 /root/antenna_diversity.py --gpio 17
+    python3 /root/antenna_smart_routing.py --serial /dev/ttyUSB0
+    python3 /root/antenna_smart_routing.py --serial /dev/ttyUSB0 --invert
+    python3 /root/antenna_smart_routing.py --serial /dev/ttyUSB0 --dry-run
+    python3 /root/antenna_smart_routing.py --gpio 17
 
 Wiring (CP2102 USB-TTL → HMC349):
     CP2102 3V3   →  HMC349 VCC
@@ -46,7 +46,7 @@ SNR_DESPERATE = 3    # Below this: both are bad, hunt aggressively
 SAMPLE_WINDOW = 4    # Seconds on new antenna before judging
 COOLDOWN = 10        # Min seconds between switches
 SWITCH_HYSTERESIS = 3  # dB better required to justify switch
-HAPPY_PROBE_EVERY = 6  # Probe other antenna every N happy cycles (~2 min)
+HAPPY_PROBE_EVERY = 1  # Probe other antenna every N happy cycles (~10s)
 
 # ── Switch control backends ───────────────────────────────────────────
 
@@ -144,7 +144,22 @@ class GPIOSwitch:
 # ── Radio stats ───────────────────────────────────────────────────────
 
 def read_snr(interface='wlan0'):
-    """Read current SNR from iwinfo. Returns (snr_db, signal, noise) or None."""
+    """Read SNR from iwinfo assoclist (per-peer, like LuCI). Returns (snr_db, signal, noise) or None."""
+    try:
+        r = subprocess.run(
+            ['iwinfo', interface, 'assoclist'],
+            capture_output=True, text=True, timeout=5)
+        # Format: "MAC  -46 dBm / -85 dBm (SNR 39)  100 ms ago"
+        best = None
+        for m in re.finditer(r'([\da-fA-F:]{17})\s+([-0-9]+)\s+dBm\s*/\s*([-0-9]+)\s+dBm\s*\(SNR\s+([0-9]+)\)', r.stdout):
+            signal, noise, snr = int(m.group(2)), int(m.group(3)), int(m.group(4))
+            if best is None or snr > best[0]:
+                best = (snr, signal, noise)
+        if best:
+            return best
+    except Exception:
+        pass
+    # Fallback: interface-level signal/noise
     try:
         r = subprocess.run(
             ['iwinfo', interface, 'info'],
@@ -216,7 +231,7 @@ def draw(state, antenna_names):
 
     print("\033[2J\033[H", end="")  # clear screen
     print()
-    print("  Haven Antenna Diversity Monitor")
+    print("  Haven Antenna Smart Routing")
     print("  " + "\u2550" * W)
 
     # ── Active antenna ────────────────────────────────────
@@ -234,7 +249,7 @@ def draw(state, antenna_names):
         label = snr_label(q['snr'])
         print()
         print(f"  SNR:     {q['snr']:>3} dB   [{bar}]  {label}")
-        print(f"  Signal:  {q['signal']:>3} dBm    Noise: {q['noise']} dBm")
+        print(f"  Signal:  {q['signal']}/{q['noise']} dBm")
         print(f"  Neighbors: {q['neighbors']}    Throughput: {q['avg_throughput_mbps']:.1f} Mbps")
     else:
         print()
@@ -248,10 +263,13 @@ def draw(state, antenna_names):
         snr = state['best_snr'].get(i)
         marker = " \u25c0 active" if i == current else ""
         if snr is not None:
+            sig = state['best_signal'].get(i)
+            nse = state['best_noise'].get(i)
             bar = snr_bar(snr, width=20)
-            print(f"    {name:.<25s} {snr:>3} dB  [{bar}]{marker}")
+            sigstr = f"{sig}/{nse} dBm" if sig is not None else "---/--- dBm"
+            print(f"    {name:.<25s} {sigstr}  SNR {snr:>2} dB  [{bar}]{marker}")
         else:
-            print(f"    {name:.<25s}   ? dB  [{'?' * 20}]{marker}")
+            print(f"    {name:.<25s} ---/--- dBm  SNR  ? dB  [{'?' * 20}]{marker}")
 
     # ── Event log ─────────────────────────────────────────
     print()
@@ -290,6 +308,8 @@ def run(switch, antenna_names, interface, happy_interval, curious_interval,
         'mode': 'starting',
         'current_quality': None,
         'best_snr': {0: None, 1: None},
+        'best_signal': {0: None, 1: None},
+        'best_noise': {0: None, 1: None},
         'happy_count': 0,
         'happy_interval': happy_interval,
         'events': collections.deque(maxlen=8),
@@ -323,6 +343,8 @@ def run(switch, antenna_names, interface, happy_interval, curious_interval,
             snr = quality['snr']
             current = switch.current
             state['best_snr'][current] = snr
+            state['best_signal'][current] = quality['signal']
+            state['best_noise'][current] = quality['noise']
 
             # ── Decide mode ───────────────────────────────
             if snr >= SNR_HAPPY:
@@ -418,7 +440,7 @@ def run(switch, antenna_names, interface, happy_interval, curious_interval,
 
 def main():
     ap = argparse.ArgumentParser(
-        description='Antenna diversity daemon for Haven mesh nodes')
+        description='Antenna smart routing daemon for Haven mesh nodes')
 
     ctrl = ap.add_mutually_exclusive_group(required=True)
     ctrl.add_argument('--serial', metavar='PORT',
@@ -436,8 +458,8 @@ def main():
                     help='Name for RF2 antenna')
     ap.add_argument('--interface', default='wlan0',
                     help='Wireless interface (default: wlan0)')
-    ap.add_argument('--happy-interval', type=int, default=20,
-                    help='Seconds between checks when link is good (default: 20)')
+    ap.add_argument('--happy-interval', type=int, default=10,
+                    help='Seconds between checks when link is good (default: 10)')
     ap.add_argument('--curious-interval', type=int, default=6,
                     help='Seconds between checks when link is degrading (default: 6)')
     ap.add_argument('--desperate-interval', type=int, default=2,

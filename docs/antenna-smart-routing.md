@@ -1,4 +1,4 @@
-# Antenna Diversity
+# Antenna Smart Routing
 
 Automatic antenna switching for Haven nodes using an RF SPDT switch. The daemon monitors link quality and selects the best antenna, improving range and reliability without manual intervention.
 
@@ -6,7 +6,7 @@ Automatic antenna switching for Haven nodes using an RF SPDT switch. The daemon 
 
 | Property | Value |
 |----------|-------|
-| Script | `scripts/antenna_diversity.py` |
+| Script | `scripts/antenna_smart_routing.py` |
 | Runs on | Haven node (gate or point) |
 | RF switch | HMC349 / HMC849 SPDT |
 | Control | CP2102 USB-TTL adapter or RPi GPIO |
@@ -18,7 +18,7 @@ The daemon uses a lazy diversity algorithm with three modes:
 
 | Mode | Condition | Behavior |
 |------|-----------|----------|
-| **Happy** | SNR > 15 dB | Stay on current antenna, probe the other every ~2 min |
+| **Happy** | SNR > 15 dB | Stay on current antenna, probe the other every ~10s |
 | **Curious** | SNR 3-15 dB | Check the other antenna every 6s |
 | **Desperate** | SNR < 3 dB | Hunt aggressively every 2s |
 
@@ -90,7 +90,7 @@ RPi GPIO                HMC349
 ### Live Monitor (interactive)
 
 ```bash
-python3 /root/antenna_diversity.py --serial /dev/ttyUSB0
+python3 /root/antenna_smart_routing.py --serial /dev/ttyUSB0
 ```
 
 Shows a full-screen display with:
@@ -102,19 +102,19 @@ Shows a full-screen display with:
 ### Background Daemon (headless)
 
 ```bash
-python3 -u /root/antenna_diversity.py --serial /dev/ttyUSB0 --no-monitor \
-    >> /root/antenna_diversity.log 2>&1 &
+python3 -u /root/antenna_smart_routing.py --serial /dev/ttyUSB0 --no-monitor \
+    >> /root/antenna_smart_routing.log 2>&1 &
 ```
 
 Check the log:
 ```bash
-tail -f /root/antenna_diversity.log
+tail -f /root/antenna_smart_routing.log
 ```
 
 ### GPIO Mode
 
 ```bash
-python3 /root/antenna_diversity.py --gpio 17
+python3 /root/antenna_smart_routing.py --gpio 17
 ```
 
 ### Options
@@ -127,7 +127,7 @@ python3 /root/antenna_diversity.py --gpio 17
 | `--invert` | off | Swap RF1/RF2 mapping if wiring is reversed |
 | `--rf1-name` | `RF1 (yogurt cup)` | Display name for RF1 antenna |
 | `--rf2-name` | `RF2 (alfa 915)` | Display name for RF2 antenna |
-| `--happy-interval` | 20 | Seconds between checks when happy |
+| `--happy-interval` | 10 | Seconds between checks when happy |
 | `--curious-interval` | 6 | Seconds between checks when curious |
 | `--desperate-interval` | 2 | Seconds between checks when desperate |
 | `--dry-run` | off | Log decisions without toggling the switch |
@@ -138,7 +138,7 @@ python3 /root/antenna_diversity.py --gpio 17
 For demonstrations or testing, reduce the timings:
 
 ```bash
-python3 /root/antenna_diversity.py --serial /dev/ttyUSB0 \
+python3 /root/antenna_smart_routing.py --serial /dev/ttyUSB0 \
     --happy-interval 1 --curious-interval 2 --desperate-interval 1
 ```
 
@@ -147,7 +147,7 @@ python3 /root/antenna_diversity.py --serial /dev/ttyUSB0 \
 1. Copy the script to the Haven node:
 
 ```bash
-scp scripts/antenna_diversity.py root@<node-ip>:/root/antenna_diversity.py
+scp scripts/antenna_smart_routing.py root@<node-ip>:/root/antenna_smart_routing.py
 ```
 
 2. Ensure `pyserial` is installed (for USB-TTL mode):
@@ -175,7 +175,7 @@ The thresholds at the top of the script can be adjusted:
 | `SNR_CURIOUS` | 8 dB | Higher = earlier curiosity |
 | `SNR_DESPERATE` | 3 dB | Rarely needs changing |
 | `SWITCH_HYSTERESIS` | 3 dB | Lower = switches more easily |
-| `HAPPY_PROBE_EVERY` | 6 cycles | Lower = probes more often when happy |
+| `HAPPY_PROBE_EVERY` | 1 cycle | Lower = probes more often when happy |
 | `COOLDOWN` | 10s | Lower = allows faster switching |
 
 > **Tip:** Start with defaults. If you notice the daemon staying on a worse antenna too long, lower `SWITCH_HYSTERESIS`. If it's flapping, raise it or increase `COOLDOWN`.
