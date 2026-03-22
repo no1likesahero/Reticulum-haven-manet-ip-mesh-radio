@@ -47,11 +47,52 @@ Everything in Haven flows through two separate paths — get this picture in you
 > **If it's not in `br-ahwlan`, it's not on the mesh.**
 
 Run this on any node:
+
 ```sh
-brctl show br-ahwlan
+sh -c '
+  echo "=== br-ahwlan members ==="
+  brctl show br-ahwlan | awk "/br-ahwlan/{found=1} found && /[a-z]/{print \"  \" $NF}" | grep -v "^  $"
+
+  echo ""
+  echo "=== checks ==="
+
+  brctl show br-ahwlan | grep -q "bat0"      \
+    && echo "  [OK]  bat0 is in br-ahwlan"   \
+    || echo "  [BAD] bat0 missing from br-ahwlan — run: ifup bat0"
+
+  batctl if 2>/dev/null | grep -q "wlan0"    \
+    && echo "  [OK]  wlan0 is inside bat0"   \
+    || echo "  [BAD] wlan0 not in bat0 — run: rmmod morse && modprobe morse"
+
+  ip link show wlan0 2>/dev/null | grep -q "master bat0" \
+    && echo "  [OK]  wlan0 master is bat0"               \
+    || echo "  [BAD] wlan0 bypassing bat0 — set mesh interface network=batmesh0 not ahwlan"
+
+  brctl show br-ahwlan | grep -qE "phy[0-9]" \
+    && echo "  [OK]  WiFi AP is in br-ahwlan" \
+    || echo "  [BAD] WiFi AP missing from br-ahwlan — set AP interface network=ahwlan"
+
+  batctl o 2>/dev/null | grep -qE "([0-9a-f]{2}:){5}" \
+    && echo "  [OK]  BATMAN sees mesh peers"            \
+    || echo "  [BAD] No mesh peers — check other nodes are on same channel/key"
+'
 ```
 
-Every interface that carries mesh traffic must appear here — either directly (WiFi APs) or through bat0 (HaLow). If something is missing, that's your problem.
+**Healthy output looks like this:**
+```
+=== br-ahwlan members ===
+  bat0
+  phy2-ap0
+
+=== checks ===
+  [OK]  bat0 is in br-ahwlan
+  [OK]  wlan0 is inside bat0
+  [OK]  wlan0 master is bat0
+  [OK]  WiFi AP is in br-ahwlan
+  [OK]  BATMAN sees mesh peers
+```
+
+Any `[BAD]` line tells you exactly what is wrong and what to run to fix it.
 
 ### What a working mesh looks like
 
@@ -128,23 +169,28 @@ The Morse Micro chip is stuck and not responding over SPI.
 
 ## Checklist 2 — Mesh Peers Not Showing (`batctl o` empty)
 
-**Symptom:** `batctl if` shows `wlan0: active` but `batctl o` is empty
+**Symptom:** `batctl if` shows `wlan0: active` but `batctl o` is empty — or `batctl if` is empty entirely.
 
-The HaLow radio joined the 802.11s mesh but BATMAN isn't routing.
+The HaLow radio joined the 802.11s mesh but BATMAN isn't routing. This also happens intermittently after running `wifi reconf` or reloading other interfaces — the HaLow mesh network assignment can silently revert from `batmesh0` to `ahwlan`.
 
 - [ ] **Check wlan0 is actually in bat0, not in br-ahwlan:**
   ```sh
+  batctl if
+  # Should say: wlan0: active
+  # Bad: empty — wlan0 is not inside bat0
+
   ip link show wlan0 | grep master
   # Should say: master bat0
   # Bad:        master br-ahwlan  ← wlan0 bypassed bat0
   ```
-  If it says `master br-ahwlan`, fix it:
+  If `batctl if` is empty or wlan0 says `master br-ahwlan`, fix it:
   ```sh
-  uci show wireless | grep "mesh_id\|network"
-  # The mesh interface network must be 'batmesh' or 'batmesh0', NOT 'ahwlan'
+  uci show wireless | grep "mode='mesh'" | cut -d. -f2
+  # Note the interface name (e.g. default_radio2), then:
   uci set wireless.<mesh_iface>.network='batmesh0'
-  uci commit wireless && wifi reload
+  uci commit wireless && wifi reconf
   ```
+  > **Note:** Use `batmesh0` on the gate (OpenMANET), `batmesh` on point nodes. Run `uci show network | grep batmesh` to see which one exists on your node.
 
 - [ ] **Check the peer node is using the same settings:**
 
@@ -225,7 +271,51 @@ cat /tmp/dhcp.leases
 
 ---
 
-## Checklist 4 — Reticulum Peers Not Discovering Each Other
+## Checklist 4 — WiFi AP Not Broadcasting
+
+**Symptom:** The AP SSID doesn't appear on scanners, or it appears but connections fail. `ip link show <ap-iface>` shows `state DOWN` and `hostapd` logs show `nl80211: Could not set interface UP` / `No such device`.
+
+This happens when a USB WiFi adapter (e.g. Panda RT5370) gets into a ghost state — the interface object exists in the kernel but the underlying device is unresponsive. `ip link set <iface> up` returns `RTNETLINK answers: No such device` even though the interface appears in `ip link show`.
+
+- [ ] **Try reloading wifi first:**
+  ```sh
+  wifi reconf
+  sleep 5
+  ip link show phy2-ap0   # check if it's UP
+  ```
+
+- [ ] **If still DOWN, reset the USB adapter by unbinding and rebinding the driver:**
+  ```sh
+  # Find the USB path for your adapter (look for the RT5370 / 148F:5370 device)
+  ls /sys/bus/usb/drivers/rt2800usb/
+  # Should show something like "1-1.2:1.0"
+
+  echo "1-1.2:1.0" > /sys/bus/usb/drivers/rt2800usb/unbind
+  sleep 2
+  echo "1-1.2:1.0" > /sys/bus/usb/drivers/rt2800usb/bind
+  sleep 3
+  wifi reconf
+  ```
+  After this, the AP should come up and be joinable.
+
+- [ ] **If the channel is set to `auto`**, the driver may fail to start the AP. Fix it:
+  ```sh
+  uci set wireless.radio0.channel='6'
+  uci set wireless.radio0.htmode='HT20'
+  uci commit wireless && wifi reconf
+  ```
+
+- [ ] **If encryption is `sae` (WPA3)**, the RT5370 doesn't support it. Downgrade to WPA2:
+  ```sh
+  uci set wireless.default_radio0.encryption='psk2'
+  uci commit wireless && wifi reconf
+  ```
+
+- [ ] **If the SSID name changed in LuCI but scanners still show the old name** — this is normal device/OS caching. Wait 30–60 seconds, toggle WiFi off and on on your device, or try a different scanner.
+
+---
+
+## Checklist 5 — Reticulum Peers Not Discovering Each Other
 
 **Symptom:** Mesh is up, devices have 10.41.x.x IPs, but Sideband/MeshChat don't see each other.
 

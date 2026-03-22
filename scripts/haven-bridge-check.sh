@@ -65,19 +65,30 @@ check_and_fix() {
         needs_restart=1
     fi
 
-    # ── Check 2: HaLow mesh radio uses batmesh, not ahwlan ──────────────
+    # ── Check 2: HaLow mesh radio uses batmesh/batmesh0, not ahwlan ────────
+    # Some nodes use 'batmesh', others (e.g. gate on OpenMANET) use 'batmesh0'.
+    # Both are valid — either maps to a batadv_hardif. Only 'ahwlan' is wrong.
     MESH_IFACE=$(uci show wireless 2>/dev/null | grep "\.mode='mesh'" | head -1 | cut -d. -f2)
     if [ -n "$MESH_IFACE" ]; then
         mesh_net=$(uci get wireless.$MESH_IFACE.network 2>/dev/null)
-        if [ "$mesh_net" = "batmesh" ]; then
-            log "OK: wireless.$MESH_IFACE.network=batmesh"
-        elif [ "$mesh_net" = "ahwlan" ]; then
-            log "FIXING: wireless.$MESH_IFACE.network was 'ahwlan', setting to 'batmesh'"
-            uci set wireless.$MESH_IFACE.network='batmesh'
-            uci set wireless.$MESH_IFACE.mesh_fwding='0'
-            uci commit wireless
-            needs_restart=1
-        fi
+        case "$mesh_net" in
+            batmesh|batmesh0)
+                log "OK: wireless.$MESH_IFACE.network=$mesh_net"
+                ;;
+            *)
+                # Detect which batmesh network exists on this node
+                if uci get network.batmesh0 >/dev/null 2>&1; then
+                    correct_net="batmesh0"
+                else
+                    correct_net="batmesh"
+                fi
+                log "FIXING: wireless.$MESH_IFACE.network was '$mesh_net', setting to '$correct_net'"
+                uci set wireless.$MESH_IFACE.network="$correct_net"
+                uci set wireless.$MESH_IFACE.mesh_fwding='0'
+                uci commit wireless
+                needs_restart=1
+                ;;
+        esac
     fi
 
     # ── Check 3: batmesh hardif exists ───────────────────────────────────

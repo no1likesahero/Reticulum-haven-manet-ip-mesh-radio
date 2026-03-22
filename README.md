@@ -159,6 +159,7 @@ See [scripts/README.md → Finding Node IPs](scripts/README.md#finding-node-ips-
 | Node | Password | WiFi SSID | WiFi Password |
 |------|----------|-----------|---------------|
 | Gate (green) | `havengreen` | `green-5ghz` | `green-5ghz` |
+| Gate (green) 2.4GHz | — | `green` | `greengreen` |
 | Point (blue) | `havenblue` | `blue-5ghz` | `blue-5ghz` |
 
 ### Manual Setup
