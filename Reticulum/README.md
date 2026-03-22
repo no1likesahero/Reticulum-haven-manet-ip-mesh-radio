@@ -12,6 +12,63 @@
 - **Small footprint** - Runs on resource-constrained devices
 - **Future-proof** - Can integrate LoRa RNodes for extreme range
 
+## Deployment Approaches
+
+There are two ways to run Reticulum on a Haven mesh. Start with the easy way.
+
+---
+
+### Easy: Reticulum on EUDs Only (No Node Installation)
+
+The simplest way to use Reticulum on a Haven mesh is to **not install it on the nodes at all**. The mesh nodes act as pure IP routers. Each end-user device (phone, laptop, tablet) runs a Reticulum client and connects to the mesh over WiFi — the HaLow transport is completely invisible to them.
+
+```
+┌─────────────┐        ┌─────────────────────────────────┐        ┌─────────────┐
+│   Laptop    │        │         Haven Mesh              │        │   Phone     │
+│  MeshChat   │──WiFi──│  gate ──(HaLow)── heltec node  │──WiFi──│  Sideband   │
+│  RNS stack  │        │   (no RNS needed on nodes)      │        │  RNS stack  │
+└─────────────┘        └─────────────────────────────────┘        └─────────────┘
+         │                                                                │
+         └──────────── same 10.41.x.x subnet ─────────────────────────────┘
+                       RNS AutoInterface discovers peers via multicast
+```
+
+**How it works:**
+- Laptop connects to the gate's WiFi AP → gets a `10.41.x.x` IP
+- Phone connects to a heltec node's bridged WiFi AP → also gets a `10.41.x.x` IP
+- Both are on the same mesh subnet — IP packets route between them over HaLow transparently
+- Reticulum's AutoInterface uses UDP multicast to discover peers on the subnet automatically
+- No RNS config, no node SSH access, no installation on mesh nodes required
+
+**Supported apps:**
+| App | Platform | Use case |
+|-----|----------|----------|
+| [Sideband](https://github.com/markqvist/Sideband) | iOS, Android | Encrypted messaging, location sharing |
+| [MeshChat](https://github.com/liamcottle/reticulum-meshchat) | Desktop (macOS, Windows, Linux) | Group chat, file transfer |
+| [NomadNet](https://github.com/markqvist/NomadNet) | Desktop | Pages, message boards |
+
+**Setup on each EUD:**
+1. Install the Reticulum app (Sideband, MeshChat, etc.)
+2. Connect the device to the Haven mesh WiFi
+3. In the app's Reticulum config, enable `AutoInterface` — no other config needed
+4. Devices discover each other automatically via multicast on the shared subnet
+
+> This is the recommended starting point. The mesh handles the HaLow bridging under the hood — from Reticulum's perspective it's just a WiFi network.
+
+---
+
+### Advanced: Reticulum Installed on Nodes
+
+Installing RNS directly on the mesh nodes enables additional capabilities:
+- **Transport node** — nodes can relay traffic between Reticulum segments (e.g. bridging HaLow mesh to a LoRa RNode for extreme range)
+- **Always-on services** — run NomadNet pages or LXMF message stores that are available even when no laptops are connected
+- **Cross-interface routing** — route between HaLow, LoRa, and internet-connected segments at the node level
+- **Store-and-forward** — nodes buffer messages for offline EUDs
+
+If you only need EUD-to-EUD messaging across the mesh, the easy approach above is sufficient. Install RNS on nodes only when you need the mesh infrastructure itself to participate in routing.
+
+---
+
 ## Architecture
 
 ```
