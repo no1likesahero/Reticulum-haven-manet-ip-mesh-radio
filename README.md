@@ -167,6 +167,7 @@ For manual configuration without the setup scripts:
 
 | Document | Description |
 |----------|-------------|
+| [docs/troubleshooting.md](docs/troubleshooting.md) | **Troubleshooting guide — start here if something breaks** |
 | [docs/haven-gate.md](docs/haven-gate.md) | Gate node manual configuration |
 | [docs/haven-point.md](docs/haven-point.md) | Point node manual configuration |
 | [docs/range-optimization.md](docs/range-optimization.md) | Range optimization guide |
