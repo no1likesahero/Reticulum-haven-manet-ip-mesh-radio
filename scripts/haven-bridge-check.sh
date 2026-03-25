@@ -91,7 +91,25 @@ check_and_fix() {
         esac
     fi
 
-    # ── Check 3: batmesh hardif exists ───────────────────────────────────
+    # ── Check 3: WiFi AP interfaces use ahwlan, not lan ─────────────────
+    # If the AP network reverts to 'lan' or 'br-lan', clients get 10.42.x.x
+    # and can't reach the mesh or discover Reticulum peers.
+    for AP_IFACE in $(uci show wireless 2>/dev/null | grep "\.mode='ap'" | cut -d. -f2); do
+        ap_net=$(uci get wireless.$AP_IFACE.network 2>/dev/null)
+        case "$ap_net" in
+            ahwlan)
+                log "OK: wireless.$AP_IFACE.network=ahwlan"
+                ;;
+            lan|br-lan)
+                log "FIXING: wireless.$AP_IFACE.network was '$ap_net', setting to 'ahwlan'"
+                uci set wireless.$AP_IFACE.network='ahwlan'
+                uci commit wireless
+                needs_restart=1
+                ;;
+        esac
+    done
+
+    # ── Check 5: batmesh hardif exists ───────────────────────────────────
     batmesh_proto=$(uci get network.batmesh.proto 2>/dev/null)
     if [ "$batmesh_proto" = "batadv_hardif" ]; then
         log "OK: network.batmesh proto=batadv_hardif"
