@@ -152,7 +152,38 @@ See [ATAK/README.md](ATAK/README.md) for peering, dashboards, and troubleshootin
 
 ### Finding Node IPs
 
-See [scripts/README.md → Finding Node IPs](scripts/README.md#finding-node-ips-from-the-gate) for all methods including HDMI monitor discovery, OpenMANET database queries, DHCP leases, and setting a static IP when your device can't get an address automatically.
+Once the mesh is running, these are the fastest ways to find any node's IP.
+
+**From the gate — see all nodes at once:**
+```bash
+cat /tmp/dhcp.leases
+```
+This shows every device that got an IP from the gate's DHCP server — nodes and client devices alike. It's the single most useful command for finding anything on the mesh.
+
+**From the gate — OpenMANET nodes only (gate + point):**
+```bash
+strings /etc/openmanetd/openmanetd.db
+```
+Lists each OpenMANET node's hostname and assigned mesh IP. Heltec/OpenWrt nodes won't appear here — use `dhcp.leases` for those.
+
+**On any node directly:**
+```bash
+uci get network.ahwlan.ipaddr
+```
+Prints that node's own mesh IP. Run it via SSH or the LuCI web terminal (Services → Terminal).
+
+**Can't reach the node yet?** Connect an HDMI monitor — the boot screen shows the IP on the `br-ahwlan` line. Or connect to the node's WiFi and check the **Router** field in your network settings — that's the node's IP.
+
+**Reach a Heltec node via the gate (SSH proxy):**
+```bash
+# Find the IP first
+ssh root@<gate-ip> "cat /tmp/dhcp.leases"
+
+# Then jump through the gate
+ssh -J root@<gate-ip> root@<node-mesh-ip>
+```
+
+See [scripts/README.md → Finding Node IPs](scripts/README.md#finding-node-ips-from-the-gate) for full details including static IP setup when DHCP isn't available.
 
 **Default credentials** (user: `root`):
 
