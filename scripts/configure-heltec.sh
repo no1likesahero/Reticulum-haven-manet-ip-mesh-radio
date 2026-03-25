@@ -15,7 +15,8 @@
 #   5. Connects the local WiFi AP to the mesh bridge
 #
 # After reboot, the node is reachable at MESH_IP on the mesh network.
-# The local WiFi AP also bridges to the mesh so clients get internet.
+# The local WiFi AP and Ethernet port both bridge to the mesh so all clients
+# get a 10.41.x.x address and can reach each other (required for Reticulum).
 #
 
 set -e
@@ -114,12 +115,21 @@ while uci get network.@device[$i] >/dev/null 2>&1; do
     i=$((i + 1))
 done
 
-# Bridge device — bat0 is the only port (wlan0 feeds through bat0, not direct)
+# Bridge device — bat0 and eth0.1 so wired Ethernet clients land on the same
+# 10.41.x.x mesh subnet as WiFi clients. Required for Reticulum AutoInterface
+# multicast discovery to work across all client types.
+# Remove eth0.1 from the default lan bridge first to avoid it being in two bridges.
+LAN_DEV=$(uci show network | grep "\.name='br-lan'" | head -1 | cut -d. -f2)
+if [ -n "$LAN_DEV" ]; then
+    uci del_list network.$LAN_DEV.ports='eth0.1' 2>/dev/null || true
+fi
+
 uci set network.ahwlan_dev=device
 uci set network.ahwlan_dev.name='br-ahwlan'
 uci set network.ahwlan_dev.type='bridge'
 uci delete network.ahwlan_dev.ports 2>/dev/null || true
 uci add_list network.ahwlan_dev.ports='bat0'
+uci add_list network.ahwlan_dev.ports='eth0.1'
 
 uci commit network
 

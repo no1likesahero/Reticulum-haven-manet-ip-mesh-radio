@@ -269,6 +269,38 @@ Reticulum has a 500-byte packet MTU to support low-bandwidth links like LoRa. Fo
 
 ## Troubleshooting
 
+### Android via Ethernet (USB-C Adapter) Can't Reach Peers
+
+![Android phone running Sideband connected via USB-C Ethernet to a Heltec node](../assets/sideband-ethernet.jpg)
+
+Android does not reliably join multicast groups on USB-C Ethernet adapters, so Reticulum's AutoInterface peer discovery never fires — even when the phone has a valid `10.41.x.x` IP and WiFi is off.
+
+**Fix:** Use a direct TCP connection instead of AutoInterface multicast.
+
+On the device running MeshChat (or any Reticulum app acting as a hub), add a TCP server interface to its Reticulum config:
+
+```ini
+[[TCP Server]]
+  type = TCPServerInterface
+  enabled = Yes
+  listen_ip = 0.0.0.0
+  listen_port = 4965
+```
+
+On Sideband (Android), open Settings → Reticulum Config and add:
+
+```ini
+[[TCP to MeshChat]]
+  type = TCPClientInterface
+  enabled = Yes
+  target_host = 10.41.0.x   # IP of the device running MeshChat
+  target_port = 4965
+```
+
+Restart both apps. The phone connects directly over TCP — no multicast needed.
+
+> **Note:** The Heltec's Ethernet port is bridged into `br-ahwlan` by `configure-heltec.sh`, so wired clients get a `10.41.x.x` address and are on the same subnet as WiFi clients. The TCP workaround is only needed because Android suppresses multicast on USB Ethernet interfaces — the underlying IP routing is fine.
+
 ### No Peers Visible
 ```bash
 # Check interface is up
