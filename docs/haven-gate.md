@@ -57,27 +57,13 @@ The primary backhaul radio operating in sub-1GHz spectrum for long-range mesh co
 | Key | havenmesh |
 | Beacon Interval | 1000ms |
 
-#### HaLow Frequency Bands by Region
+#### HaLow Frequency Bands
 
-| Region | Frequency Range | Example Channels |
-|--------|-----------------|------------------|
-| US/FCC | 902-928 MHz | 1-51 |
-| EU/ETSI | 863-868 MHz | Varies |
-| Japan | 920-928 MHz | Varies |
-| Australia | 915-928 MHz | Varies |
+See [HaLow Reference](halow-reference.md#supported-frequency-bands) for all supported regions.
 
 #### Channel Widths
 
-Max PHY rate depends on the HaLow SoC. Haven ships with the **MM6108** (MCS 0–7, 64-QAM max). The **MM8108** adds MCS 8–9 (256-QAM) for higher peak rates and an integrated 26 dBm PA.
-
-| Width | MM6108 Max | MM8108 Max | Range | Best For |
-|-------|------------|------------|-------|----------|
-| 1 MHz | 3.3 Mbps | 4.4 Mbps | Maximum | Long-range backhaul |
-| 2 MHz | 7.2 Mbps | 8.7 Mbps | Very Long | Balanced range/speed |
-| 4 MHz | 15.0 Mbps | 20.0 Mbps | Long | Higher throughput |
-| 8 MHz | 32.5 Mbps | 43.3 Mbps | Medium | Local high-speed |
-
-> Real-world throughput is typically 40–60% of PHY rate.
+See [HaLow Reference](halow-reference.md) for the full MCS table and channel width comparison.
 
 Configure frequency via OpenWrt:
 ```bash

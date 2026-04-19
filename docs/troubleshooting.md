@@ -2,6 +2,8 @@
 
 This guide gives you a mental model of how the mesh works, then a checklist for every common failure. If something breaks, start at the top of the relevant checklist and work down.
 
+See also: [Finding & Accessing Nodes](finding-nodes.md) if you just need to find a node's IP.
+
 ---
 
 ## The Mental Model
@@ -192,6 +194,11 @@ The HaLow radio joined the 802.11s mesh but BATMAN isn't routing. This also happ
   ```
   > **Note:** Use `batmesh0` on the gate (OpenMANET), `batmesh` on point nodes. Run `uci show network | grep batmesh` to see which one exists on your node.
 
+- [ ] **Verify MESH_ID, MESH_KEY, HALOW_CHANNEL match exactly on all nodes**
+  ```bash
+  iwinfo wlan0 info    # Check channel, mesh ID
+  ```
+
 - [ ] **Check the peer node is using the same settings:**
 
   | Setting | Required value |
@@ -221,7 +228,82 @@ The HaLow radio joined the 802.11s mesh but BATMAN isn't routing. This also happ
 
 ---
 
-## Checklist 3 — WiFi Clients Not Getting Internet
+## Checklist 3 — Can't Connect from Computer or Phone
+
+Your device connects to the Haven node's WiFi AP, then talks to the mesh through it. If you can't connect or can't reach anything after connecting, work through these steps:
+
+**1. WiFi network not visible**
+- Verify the 5GHz AP is running on the node: `iwinfo phy1-ap0 info`
+- If no output, restart WiFi: `wifi reload`
+- Make sure your device supports 5GHz WiFi — some older devices only see 2.4GHz networks
+- If you're close to the node and still don't see it, SSH in via Ethernet or your upstream router and check that the radio is enabled: `uci show wireless | grep disabled`
+
+**2. WiFi connects but no IP address**
+- The gate node runs the DHCP server for the whole mesh. If your device says "Connected, No Internet" or doesn't get an IP:
+  - Verify DHCP is running on the gate: `logread | grep dnsmasq`
+  - Check DHCP leases: `cat /tmp/dhcp.leases`
+  - Try forgetting the network on your device, then reconnecting
+  - On the gate node, restart DHCP: `/etc/init.d/dnsmasq restart`
+
+**3. Got an IP but can't reach the node's web interface**
+- Confirm your device has a `10.41.x.x` address (see [Setup Guide → Connect Your Device](setup-guide.md#connect-your-device))
+- If your IP is **not** in the `10.41.x.x` range, your device may have connected to a different network — check you joined `green-5ghz` or `blue-5ghz`, not your home WiFi
+- Find the node's mesh IP: `uci get network.ahwlan.ipaddr` (run on the node via SSH or connected monitor)
+- Test with ping from your device: `ping <node-mesh-ip>`
+- If ping works but the browser doesn't load, try `http://<node-mesh-ip>` (not https)
+
+**4. Connecting via your upstream/home network instead**
+- If the gate is plugged into your home router, you don't need to switch WiFi — stay on your regular home network
+- Find the gate's IP in your router's device list (look for a device named "green")
+- Browse to `http://<that-ip>` — this reaches the gate's management interface via Ethernet, bypassing WiFi entirely
+
+---
+
+## Checklist 4 — WiFi AP Not Broadcasting
+
+**Symptom:** The AP SSID doesn't appear on scanners, or it appears but connections fail. `ip link show <ap-iface>` shows `state DOWN` and `hostapd` logs show `nl80211: Could not set interface UP` / `No such device`.
+
+This happens when a USB WiFi adapter (e.g. Panda RT5370) gets into a ghost state — the interface object exists in the kernel but the underlying device is unresponsive. `ip link set <iface> up` returns `RTNETLINK answers: No such device` even though the interface appears in `ip link show`.
+
+- [ ] **Try reloading wifi first:**
+  ```sh
+  wifi reconf
+  sleep 5
+  ip link show phy2-ap0   # check if it's UP
+  ```
+
+- [ ] **If still DOWN, reset the USB adapter by unbinding and rebinding the driver:**
+  ```sh
+  # Find the USB path for your adapter (look for the RT5370 / 148F:5370 device)
+  ls /sys/bus/usb/drivers/rt2800usb/
+  # Should show something like "1-1.2:1.0"
+
+  echo "1-1.2:1.0" > /sys/bus/usb/drivers/rt2800usb/unbind
+  sleep 2
+  echo "1-1.2:1.0" > /sys/bus/usb/drivers/rt2800usb/bind
+  sleep 3
+  wifi reconf
+  ```
+  After this, the AP should come up and be joinable.
+
+- [ ] **If the channel is set to `auto`**, the driver may fail to start the AP. Fix it:
+  ```sh
+  uci set wireless.radio0.channel='6'
+  uci set wireless.radio0.htmode='HT20'
+  uci commit wireless && wifi reconf
+  ```
+
+- [ ] **If encryption is `sae` (WPA3)**, the RT5370 doesn't support it. Downgrade to WPA2:
+  ```sh
+  uci set wireless.default_radio0.encryption='psk2'
+  uci commit wireless && wifi reconf
+  ```
+
+- [ ] **If the SSID name changed in LuCI but scanners still show the old name** — this is normal device/OS caching. Wait 30–60 seconds, toggle WiFi off and on on your device, or try a different scanner.
+
+---
+
+## Checklist 5 — WiFi Clients Not Getting Internet
 
 **Symptom:** Phone/laptop connects to a node's WiFi, gets an IP, but no internet.
 
@@ -271,58 +353,179 @@ cat /tmp/dhcp.leases
 
 ---
 
-## Checklist 4 — WiFi AP Not Broadcasting
+## Checklist 6 — No Internet on Point/Heltec Nodes
 
-**Symptom:** The AP SSID doesn't appear on scanners, or it appears but connections fail. `ip link show <ap-iface>` shows `state DOWN` and `hostapd` logs show `nl80211: Could not set interface UP` / `No such device`.
+**Symptom:** WiFi clients connect to a node's AP but have no internet. This is almost always a BATMAN-adv bridge issue on one of the nodes.
 
-This happens when a USB WiFi adapter (e.g. Panda RT5370) gets into a ghost state — the interface object exists in the kernel but the underlying device is unresponsive. `ip link set <iface> up` returns `RTNETLINK answers: No such device` even though the interface appears in `ip link show`.
+### Quick diagnosis from any node
 
-- [ ] **Try reloading wifi first:**
-  ```sh
-  wifi reconf
-  sleep 5
-  ip link show phy2-ap0   # check if it's UP
-  ```
+```bash
+# 1. Can you reach the gate?
+ping -c 2 10.41.0.3
 
-- [ ] **If still DOWN, reset the USB adapter by unbinding and rebinding the driver:**
-  ```sh
-  # Find the USB path for your adapter (look for the RT5370 / 148F:5370 device)
-  ls /sys/bus/usb/drivers/rt2800usb/
-  # Should show something like "1-1.2:1.0"
+# 2. Can the gate reach the internet?
+# (SSH to gate first: ssh root@192.168.0.66)
+ping -c 2 8.8.8.8
 
-  echo "1-1.2:1.0" > /sys/bus/usb/drivers/rt2800usb/unbind
-  sleep 2
-  echo "1-1.2:1.0" > /sys/bus/usb/drivers/rt2800usb/bind
-  sleep 3
-  wifi reconf
-  ```
-  After this, the AP should come up and be joinable.
+# 3. Is BATMAN seeing neighbors?
+batctl n
 
-- [ ] **If the channel is set to `auto`**, the driver may fail to start the AP. Fix it:
-  ```sh
-  uci set wireless.radio0.channel='6'
-  uci set wireless.radio0.htmode='HT20'
-  uci commit wireless && wifi reconf
-  ```
+# 4. Is bat0 in the bridge?
+ip link show bat0        # look for "master br-ahwlan"
 
-- [ ] **If encryption is `sae` (WPA3)**, the RT5370 doesn't support it. Downgrade to WPA2:
-  ```sh
-  uci set wireless.default_radio0.encryption='psk2'
-  uci commit wireless && wifi reconf
-  ```
+# 5. Does br-ahwlan have an IP?
+ip addr show br-ahwlan   # should show 10.41.x.x
+```
 
-- [ ] **If the SSID name changed in LuCI but scanners still show the old name** — this is normal device/OS caching. Wait 30–60 seconds, toggle WiFi off and on on your device, or try a different scanner.
+If any of those fail, follow the fix steps below.
+
+### Fix 1: Run the health check (fastest)
+
+The `haven-bridge-check.sh` init script checks and auto-repairs the three most common failures. Run it on the broken node:
+
+```bash
+sh /etc/init.d/haven-bridge-check
+```
+
+It will report what it finds and fix:
+- `bat0` missing from `br-ahwlan` bridge
+- Mesh radio pointing to `ahwlan` instead of `batmesh`
+- Missing `batmesh` hardif interface
+
+If it says "All checks passed" but internet still doesn't work, continue to Fix 2.
+
+### Fix 2: Manual bridge repair
+
+If the health check didn't fix it, do it manually:
+
+```bash
+# Check if bat0 is in the bridge
+ip link show bat0
+# Should say: master br-ahwlan
+# If it says: master bat0 — that's wrong, wlan0 is going direct
+
+# Check what the mesh radio points to
+uci show wireless | grep network | grep mesh
+# Should be: network='batmesh'
+# If it says: network='ahwlan' — that's the problem
+
+# Fix it:
+uci set wireless.<mesh_iface>.network='batmesh'
+uci set wireless.<mesh_iface>.mesh_fwding='0'
+uci commit wireless
+
+# Ensure batmesh hardif exists
+uci set network.batmesh=interface
+uci set network.batmesh.proto='batadv_hardif'
+uci set network.batmesh.master='bat0'
+uci commit network
+
+# Restart
+wifi down && service network restart && sleep 3 && wifi up
+
+# Verify
+batctl if          # should show: wlan0: active
+ip link show bat0  # should show: master br-ahwlan
+```
+
+### Fix 3: Anonymous bridge device conflict
+
+OpenWrt can auto-create anonymous bridge devices that shadow the named one and leave `bat0` out of the bridge. This is the most common root cause.
+
+```bash
+# Check for anonymous devices
+uci show network | grep '@device'
+# If you see @device[N].name='br-ahwlan' — that's the conflict
+
+# Remove all anonymous br-ahwlan devices
+i=0
+while uci get network.@device[$i] 2>/dev/null; do
+    name=$(uci get network.@device[$i].name 2>/dev/null)
+    if [ "$name" = "br-ahwlan" ]; then
+        uci delete network.@device[$i]
+        echo "Deleted anonymous device[$i]"
+        continue
+    fi
+    i=$((i + 1))
+done
+
+# Recreate the named bridge device
+uci set network.ahwlan_dev=device
+uci set network.ahwlan_dev.name='br-ahwlan'
+uci set network.ahwlan_dev.type='bridge'
+uci delete network.ahwlan_dev.ports 2>/dev/null
+uci add_list network.ahwlan_dev.ports='bat0'
+uci commit network
+
+service network restart
+```
+
+### Fix 4: Gate-specific — check upstream internet
+
+The gate forwards internet from `eth0` to the mesh. If the gate itself has no internet:
+
+```bash
+# On the gate:
+ping -c 2 8.8.8.8               # upstream connectivity
+ip route | grep default          # should go via eth0
+ip addr show eth0                # should have upstream IP
+
+# If eth0 lost its IP, restart networking:
+service network restart
+
+# Check NAT is enabled:
+uci show firewall | grep masq    # should show masq='1'
+```
+
+### Fix 5: Nuclear option — re-run setup
+
+If nothing else works, re-run the setup script for the node type:
+- **Gate:** `sh setup-haven-gate.sh && reboot`
+- **Point:** `sh setup-haven-point.sh && reboot`
+- **Heltec:** `sh configure-heltec.sh && reboot`
 
 ---
 
-## Checklist 5 — Reticulum Peers Not Discovering Each Other
+## Installing the Boot Health Check
+
+The `haven-bridge-check.sh` script auto-repairs the mesh on every boot. Install it on each node:
+
+```bash
+# From your computer — install on the gate:
+scp haven-bridge-check.sh root@<gate-ip>:/etc/init.d/haven-bridge-check
+ssh root@<gate-ip> "chmod +x /etc/init.d/haven-bridge-check && /etc/init.d/haven-bridge-check enable"
+
+# For Heltec/point nodes (via gate as jump host):
+scp -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" haven-bridge-check.sh root@<node-mesh-ip>:/etc/init.d/haven-bridge-check
+ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<node-mesh-ip> "chmod +x /etc/init.d/haven-bridge-check && /etc/init.d/haven-bridge-check enable"
+```
+
+Check the log after a reboot:
+```bash
+logread | grep haven-mesh
+```
+
+### Why Does the Bridge Break?
+
+OpenWrt manages bridge devices in two ways:
+
+1. **Anonymous `@device[N]`** — auto-created when `type='bridge'` is set on an interface, or when the `wifi` command regenerates config, or during firmware upgrades. These have no `ports` list.
+2. **Named `ahwlan_dev`** — our explicit definition with `bat0` as a port.
+
+When both exist, the anonymous one takes priority and `bat0` gets left out of the bridge. The mesh radio still works at layer 2 (BATMAN neighbors are visible) but there's no IP connectivity because `bat0` isn't bridged.
+
+The setup scripts and boot health check prevent this by cleaning up anonymous devices and always re-asserting the correct named device.
+
+---
+
+## Checklist 7 — Reticulum Peers Not Discovering Each Other
 
 **Symptom:** Mesh is up, devices have 10.41.x.x IPs, but Sideband/MeshChat don't see each other.
 
 - [ ] **Confirm both devices are on the same subnet:**
   - Device A (e.g. laptop on gate WiFi): should have 10.41.x.x
   - Device B (e.g. phone on heltec WiFi): should have 10.41.x.x
-  - If Device B has 10.42.x.x → bridging issue, see Checklist 3
+  - If Device B has 10.42.x.x → bridging issue, see Checklist 5
 
 - [ ] **Confirm they can ping each other:**
   From laptop: `ping <phone-ip>` — if this fails, the issue is network, not Reticulum.
@@ -335,6 +538,9 @@ This happens when a USB WiFi adapter (e.g. Panda RT5370) gets into a ghost state
 - [ ] **EUDs only need AutoInterface** — no RNS config on the nodes is required. Just connect to the mesh WiFi, enable AutoInterface in Sideband/MeshChat, and they discover each other automatically. See [Reticulum/README.md](../Reticulum/README.md) for the easy setup.
 
 - [ ] **If multicast doesn't work**, fall back to UDPInterface pointing directly at the other device's IP — this always works since it's unicast.
+
+- [ ] **Check status:** `python3 /root/rns_status.py`
+- [ ] **View logs:** `rnsd -v`
 
 ---
 

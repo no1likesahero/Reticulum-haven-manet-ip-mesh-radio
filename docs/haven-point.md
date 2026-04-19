@@ -57,7 +57,7 @@ The primary backhaul radio connecting to other Haven nodes.
 | Key | havenmesh |
 | Beacon Interval | 1000ms |
 
-**Important**: The HaLow channel and width must match the Gate node exactly for mesh connectivity. See [haven-gate.md](haven-gate.md) for frequency band options.
+**Important**: The HaLow channel and width must match the Gate node exactly for mesh connectivity. See [haven-gate.md](haven-gate.md) for radio configuration and [HaLow Reference](halow-reference.md) for frequency bands and channel widths.
 
 ```bash
 # Check HaLow link quality

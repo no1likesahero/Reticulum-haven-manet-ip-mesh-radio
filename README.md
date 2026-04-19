@@ -78,112 +78,35 @@ Haven nodes are compact, rugged units built for field deployment. Each node incl
                           Phones, Laptops, ATAK
 ```
 
-## Getting Started
+## Documentation
+
+| Document | What it covers |
+|----------|----------------|
+| **[Setup Guide](docs/setup-guide.md)** | Step-by-step: gate setup, point nodes, Reticulum, ATAK, Heltec nodes |
+| **[Finding & Accessing Nodes](docs/finding-nodes.md)** | How to find node IPs and reach LuCI — the thing you'll need most often |
+| **[Troubleshooting](docs/troubleshooting.md)** | Mental model, diagnostics, fix checklists for every common failure |
+| **[HaLow Reference](docs/halow-reference.md)** | Radio specs, channel widths, MCS tables, software versions |
+| **[Range Optimization](docs/range-optimization.md)** | Antenna selection, TX power, channel width tuning, range testing |
+| **[Antenna Smart Routing](docs/antenna-smart-routing.md)** | Automatic antenna switching with RF SPDT switch |
+| **[Gate Node Config](docs/haven-gate.md)** | Manual gate configuration reference |
+| **[Point Node Config](docs/haven-point.md)** | Manual point configuration reference |
+| **[Reticulum](Reticulum/README.md)** | Encrypted overlay network — configuration, monitoring, apps |
+| **[ATAK Bridge](ATAK/README.md)** | ATAK/CivTAK situational awareness over Reticulum |
+| **[Scripts](scripts/README.md)** | Script reference and Reticulum demo tools |
+
+## Quick Start
 
 All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on.
 
-Full step-by-step instructions are in [scripts/README.md](scripts/README.md). Quick summary below.
+| Step | What | How |
+|------|------|-----|
+| **1** | Set up the Gate node | Plug into router, run setup script → [Setup Guide](docs/setup-guide.md#step-1-set-up-the-gate-node-green) |
+| **2** | Add Point nodes | Plug into laptop, paste setup script → [Setup Guide](docs/setup-guide.md#step-2-add-point-nodes-blue) |
+| **3** | Install Reticulum *(optional)* | Encrypted overlay → [Setup Guide](docs/setup-guide.md#step-3-install-reticulum-optional) |
+| **4** | Send Reticulum messages *(optional)* | Test encrypted messaging → [Scripts](scripts/README.md#reticulum-demo-scripts) |
+| **5** | Install the ATAK bridge *(optional)* | Situational awareness → [Setup Guide](docs/setup-guide.md#step-5-install-the-atak-bridge-optional) |
 
-| Step | What | Details |
-|------|------|---------|
-| **1** | [Set up the Gate node](#step-1-set-up-the-gate-node) | Your first node — shares internet with the mesh |
-| **2** | [Add Point nodes](#step-2-add-point-nodes) | Extend the mesh — no internet needed |
-| **3** | [Install Reticulum](#step-3-install-reticulum-optional) *(optional)* | Encrypted overlay communications |
-| **4** | [Send Reticulum messages](#step-4-send-reticulum-messages-optional) *(optional)* | Test encrypted messaging across the mesh |
-| **5** | [Install the ATAK bridge](#step-5-install-the-atak-bridge-optional) *(optional)* | ATAK/CivTAK situational awareness |
-
-### Step 1: Set Up the Gate Node
-
-The gate (green) is your first node — it shares internet with the rest of the mesh.
-
-1. Plug the gate node into your **upstream router via Ethernet**
-2. Find the gate's IP in your **router's device list**
-3. SSH in (`ssh root@<gate-ip>`) or open `http://<gate-ip>` → **Services → Terminal**
-4. Run:
-```bash
-wget -O setup.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-gate.sh
-sh setup.sh && reboot
-```
-
-### Step 2: Add Point Nodes
-
-Point nodes (blue) extend the mesh — no internet connection needed.
-
-1. Plug Ethernet **directly from your computer to the point node**
-2. Open a browser to `http://10.41.254.1` → **Services → Terminal**
-3. The point node has no internet, so paste the script directly:
-   - Open the [raw setup script](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-point.sh) on your computer
-   - Select all, copy, paste into the terminal, press Enter
-4. Type `reboot` when finished
-
-**Verify:** Connect to **green-5ghz** WiFi (password: `green-5ghz`) and browse to the point node's mesh IP. If LuCI loads, your mesh is working.
-
-**Connect your device:** After setup, join `green-5ghz` or `blue-5ghz` WiFi from your computer or phone. Your device should get a `10.41.x.x` IP address and can reach any node's web interface at `http://<node-mesh-ip>`. If the gate is plugged into your home router, you can also stay on your home WiFi and access the gate at the IP shown in your router's device list. See [scripts/README.md → Connect Your Device](scripts/README.md#connect-your-device) for details and troubleshooting.
-
-### Step 3: Install Reticulum (Optional)
-
-Adds an encrypted overlay network to the mesh. Run on each node:
-
-```bash
-wget -O /tmp/setup-reticulum.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-reticulum.sh
-sh /tmp/setup-reticulum.sh
-/etc/init.d/rnsd enable && /etc/init.d/rnsd start
-```
-
-See [Reticulum/README.md](Reticulum/README.md) for configuration and interface details.
-
-### Step 4: Send Reticulum Messages (Optional)
-
-Test encrypted messaging across the mesh using the included demo scripts (`rns_status.py`, `rns_send.py`, `rns_receive.py`). See [scripts/README.md → Step 4](scripts/README.md#step-4-send-reticulum-messages-optional) for full usage and example output.
-
-### Step 5: Install the ATAK Bridge (Optional)
-
-Bridges ATAK/CivTAK situational awareness traffic over Reticulum. Requires [Step 3](#step-3-install-reticulum-optional).
-
-```bash
-wget -O /tmp/setup-cot-bridge.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-cot-bridge.sh
-sh /tmp/setup-cot-bridge.sh
-/etc/init.d/cot_bridge enable && /etc/init.d/cot_bridge start
-```
-
-See [ATAK/README.md](ATAK/README.md) for peering, dashboards, and troubleshooting.
-
-> After any step, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings. See [Finding Node IPs](#finding-node-ips) to access each node.
-
-### Finding Node IPs
-
-Once the mesh is running, these are the fastest ways to find any node's IP.
-
-**From the gate — see all nodes at once:**
-```bash
-cat /tmp/dhcp.leases
-```
-This shows every device that got an IP from the gate's DHCP server — nodes and client devices alike. It's the single most useful command for finding anything on the mesh.
-
-**From the gate — OpenMANET nodes only (gate + point):**
-```bash
-strings /etc/openmanetd/openmanetd.db
-```
-Lists each OpenMANET node's hostname and assigned mesh IP. Heltec/OpenWrt nodes won't appear here — use `dhcp.leases` for those.
-
-**On any node directly:**
-```bash
-uci get network.ahwlan.ipaddr
-```
-Prints that node's own mesh IP. Run it via SSH or the LuCI web terminal (Services → Terminal).
-
-**Can't reach the node yet?** Connect an HDMI monitor — the boot screen shows the IP on the `br-ahwlan` line. Or connect to the node's WiFi and check the **Router** field in your network settings — that's the node's IP.
-
-**Reach a Heltec node via the gate (SSH proxy):**
-```bash
-# Find the IP first
-ssh root@<gate-ip> "cat /tmp/dhcp.leases"
-
-# Then jump through the gate
-ssh -J root@<gate-ip> root@<node-mesh-ip>
-```
-
-See [scripts/README.md → Finding Node IPs](scripts/README.md#finding-node-ips-from-the-gate) for full details including static IP setup when DHCP isn't available.
+> After any step, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings. See **[Finding & Accessing Nodes](docs/finding-nodes.md)** to reach each node.
 
 **Default credentials** (user: `root`):
 
@@ -192,65 +115,6 @@ See [scripts/README.md → Finding Node IPs](scripts/README.md#finding-node-ips-
 | Gate (green) | `havengreen` | `green-5ghz` | `green-5ghz` |
 | Gate (green) 2.4GHz | — | `green` | `greengreen` |
 | Point (blue) | `havenblue` | `blue-5ghz` | `blue-5ghz` |
-
-### Manual Setup
-
-For manual configuration without the setup scripts:
-
-| Document | Description |
-|----------|-------------|
-| [docs/troubleshooting.md](docs/troubleshooting.md) | **Troubleshooting guide — start here if something breaks** |
-| [docs/haven-gate.md](docs/haven-gate.md) | Gate node manual configuration |
-| [docs/haven-point.md](docs/haven-point.md) | Point node manual configuration |
-| [docs/range-optimization.md](docs/range-optimization.md) | Range optimization guide |
-| [docs/antenna-smart-routing.md](docs/antenna-smart-routing.md) | Automatic antenna switching with RF switch |
-| [Reticulum/README.md](Reticulum/README.md) | Reticulum configuration and usage |
-| [ATAK/README.md](ATAK/README.md) | ATAK/CivTAK bridge setup |
-
-## HaLow (802.11ah) Radio Specifications
-
-HaLow operates in sub-1GHz ISM bands, providing significantly greater range than traditional WiFi.
-
-### Supported Frequency Bands
-
-| Region | Frequency Range | Common Channels |
-|--------|-----------------|-----------------|
-| US/FCC | 902-928 MHz | 1-51 |
-| EU/ETSI | 863-868 MHz | Varies |
-| Japan | 920-928 MHz | Varies |
-| Australia | 915-928 MHz | Varies |
-
-### Channel Widths
-
-Max PHY rate depends on the HaLow SoC. Haven ships with the **MM6108** (MCS 0–7, 64-QAM max). The **MM8108** adds MCS 8–9 (256-QAM) for higher peak rates and an integrated 26 dBm PA.
-
-| Width | MM6108 Max | MM8108 Max | Range | Use Case |
-|-------|------------|------------|-------|----------|
-| 1 MHz | 3.3 Mbps | 4.4 Mbps | Maximum | Long-range backhaul |
-| 2 MHz | 7.2 Mbps | 8.7 Mbps | Very Long | Balanced |
-| 4 MHz | 15.0 Mbps | 20.0 Mbps | Long | Higher throughput |
-| 8 MHz | 32.5 Mbps | 43.3 Mbps | Medium | Local high-speed |
-
-> Real-world throughput is typically 40–60% of PHY rate. See [scripts/README.md](scripts/README.md#channel-width-vs-range) for the full MCS reference table.
-
-### Default Configuration
-- **Channel**: 27 (914 MHz center frequency)
-- **Width**: 2 MHz (HT20)
-- **Encryption**: WPA3 SAE (CCMP)
-
-## Software Stack
-
-All components are open source:
-
-| Component | Version | Description |
-|-----------|---------|-------------|
-| **OpenMANET** | 24.10 (1.6.1) | OpenWrt-based mesh firmware |
-| **OpenWrt** | 24.10 | Base embedded Linux distribution |
-| **Linux Kernel** | 6.6.102 | Operating system kernel |
-| **Morse Micro Driver** | 1.16.4 | HaLow radio driver |
-| **BATMAN-adv** | 2025.4 | Layer 2 mesh routing protocol |
-| **Python** | 3.11.14 | Runtime for Reticulum |
-| **Reticulum** | 1.1.3 | Encrypted networking stack |
 
 ## Hardware Requirements
 
