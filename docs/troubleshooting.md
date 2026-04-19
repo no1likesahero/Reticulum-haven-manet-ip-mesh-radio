@@ -220,8 +220,8 @@ The HaLow radio joined the 802.11s mesh but BATMAN isn't routing. This also happ
   | Mesh ID | `haven` |
   | Encryption | WPA3-SAE |
   | Key | `havenmesh` |
-  | Channel | 27 (915.5 MHz) |
-  | Width | 1 MHz |
+  | Channel | 28 (916 MHz) |
+  | Width | 8 MHz (HT80) |
   | Channel fwding | disabled (mesh_fwding=0) |
 
 - [ ] **Check for SAE auth failures:**

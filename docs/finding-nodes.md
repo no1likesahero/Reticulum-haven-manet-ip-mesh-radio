@@ -20,6 +20,29 @@ After setup, you need to find each node's IP to access its web interface (LuCI) 
 
 This works because the gate bridges WiFi clients onto the same mesh subnet. Your laptop on green's WiFi can reach any `10.41.x.x` address directly.
 
+### If `http://<blue-ip>` doesn't load
+
+The `openmanetd.db` entry can be stale (an IP from a previous boot) or blue may not be fully on the mesh. Work through these in order:
+
+```bash
+# On the gate — verify blue is actually at that IP right now
+ping -c 3 <blue-ip>
+
+# No reply? Find blue's current IP a different way:
+batctl n                             # HaLow neighbors (MAC addresses)
+ip neigh show dev br-ahwlan | grep 10.41   # live ARP table — real current IPs
+```
+
+Cross-reference blue's MAC from `batctl n` against `ip neigh` to find its current IP, then try `http://<real-ip>` in the browser.
+
+Still failing? Check from your **laptop** (while on `green-5ghz`):
+
+- Confirm you got a `10.41.x.x` address (not a `192.168.x.x` home-WiFi IP — easy to mix up)
+- Try `ping <blue-ip>` before the browser
+- Make sure you're using `http://`, not `https://` — LuCI is HTTP only
+
+If ping fails from the gate itself, the problem is the mesh — run the diagnostic script on blue (see [Troubleshooting](troubleshooting.md)).
+
 ---
 
 ## Method 1: Run a command on the node
@@ -96,7 +119,15 @@ If the node isn't on the mesh yet (no gate, first-time setup, or misconfigured),
 Heltec HaLow nodes running OpenWrt aren't in the OpenMANET database and may not be directly reachable from your computer. You can reach them by jumping through the gate:
 
 1. Find the Heltec node's IP from the gate: `cat /tmp/dhcp.leases`
-2. SSH through the gate using ProxyCommand:
+
+> **Shortcut: already on the gate?** If you're already SSH'd into green, you don't need `ProxyCommand` — just SSH straight to the other node from there:
+> ```bash
+> # On green (no ProxyCommand, no placeholders)
+> ssh root@10.41.126.198          # password: havenblue
+> ```
+> The gate is already on the mesh, so it can reach any `10.41.x.x` node directly. Use `ProxyCommand` only when you're starting from your laptop and need to hop through the gate in a single command.
+
+2. SSH through the gate using ProxyCommand (from your laptop):
 ```bash
 ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<node-mesh-ip>
 ```
