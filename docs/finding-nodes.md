@@ -12,6 +12,26 @@ After setup, you need to find each node's IP to access its web interface (LuCI) 
 
 ---
 
+## The Core Principle: Any Node, From Anywhere on the Mesh
+
+**Every LuCI and SSH endpoint is reachable from every other point on the mesh.** That's the point of the mesh — there is no "blue's network" vs "green's network." Every node bridges its WiFi AP into `br-ahwlan`, BATMAN-adv stitches the bridges together over HaLow, and every client and node lives on the same flat `10.41.0.0/16` subnet.
+
+What this means in practice:
+
+- Joined `green-5ghz`? You can reach `http://<blue-ip>`, `http://<heltec-ip>`, and any other node's LuCI.
+- Joined `blue-5ghz`? Same — reach green, heltec, or any point node.
+- SSH'd into any node? `ssh root@<any-other-node-ip>` works directly.
+- Phones on different nodes' WiFi APs can ping each other, Reticulum peers auto-discover, etc.
+
+Caveats:
+
+- **Ping the target first** on the very first reach — BATMAN-adv's Distributed ARP Table needs a beat to resolve (see the Quick Answer callout below). This is the #1 "mesh looks broken" moment.
+- **The mesh has to be healthy** — `bat0` in `br-ahwlan`, `wlan0` inside `bat0`, on every node. See [Troubleshooting](troubleshooting.md).
+- **Heltec's standalone 2.4GHz AP on `10.42.0.0/24`** is the fallback AP that **bypasses** the mesh. Clients there are isolated. After `configure-heltec.sh`, the Heltec joins the mesh and its AP lands on `10.41.x.x` with everyone else.
+- **Coming from your home LAN** (e.g. your laptop on your regular home WiFi) you can only reach the gate directly. To reach other nodes, hop through the gate — SSH `ProxyCommand` or a port-forward (see Method 5).
+
+---
+
 ## Quick Answer: "I'm on green's WiFi, how do I reach blue's LuCI?"
 
 1. SSH into the gate: `ssh root@<gate-ip>`
