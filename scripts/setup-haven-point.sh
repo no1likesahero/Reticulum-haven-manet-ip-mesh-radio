@@ -25,8 +25,8 @@ GATEWAY_IP="10.41.0.1"        # Initial gate IP; openmanetd may reassign after b
 DNS_SERVERS="8.8.8.8 8.8.4.4"
 
 # HaLow radio settings - MUST MATCH GATE NODE
-HALOW_CHANNEL="27"
-HALOW_HTMODE="HT20"
+HALOW_CHANNEL="28"
+HALOW_HTMODE="HT80"
 
 # WiFi AP settings
 WIFI_5GHZ_SSID="blue-5ghz"

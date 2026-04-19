@@ -23,8 +23,8 @@ MESH_IP="10.41.0.1"           # Initial IP; openmanetd may reassign after boot
 MESH_NETMASK="255.255.0.0"
 
 # HaLow radio settings (802.11ah)
-HALOW_CHANNEL="27"        # US: 1-51, channel 27 = 914 MHz
-HALOW_HTMODE="HT20"       # HT20=2MHz, HT40=4MHz, HT80=8MHz
+HALOW_CHANNEL="28"        # US: 1-51, channel 28 = 916 MHz
+HALOW_HTMODE="HT80"       # HT20=2MHz, HT40=4MHz, HT80=8MHz
 
 # WiFi AP settings
 WIFI_5GHZ_SSID="green-5ghz"

@@ -15,7 +15,7 @@ After setup, you need to find each node's IP to access its web interface (LuCI) 
 ## Quick Answer: "I'm on green's WiFi, how do I reach blue's LuCI?"
 
 1. SSH into the gate: `ssh root@<gate-ip>`
-2. Find blue's IP: `cat /tmp/dhcp.leases` or `strings /etc/openmanetd/openmanetd.db`
+2. Find blue's IP: `strings /etc/openmanetd/openmanetd.db`
 3. Open `http://<blue-ip>` in your browser (while still on green's WiFi)
 
 This works because the gate bridges WiFi clients onto the same mesh subnet. Your laptop on green's WiFi can reach any `10.41.x.x` address directly.

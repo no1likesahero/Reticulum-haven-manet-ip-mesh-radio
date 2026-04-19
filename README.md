@@ -93,6 +93,7 @@ Haven nodes are compact, rugged units built for field deployment. Each node incl
 | **[Reticulum](Reticulum/README.md)** | Encrypted overlay network — configuration, monitoring, apps |
 | **[ATAK Bridge](ATAK/README.md)** | ATAK/CivTAK situational awareness over Reticulum |
 | **[Scripts](scripts/README.md)** | Script reference and Reticulum demo tools |
+| **[AI Agents](agents.md)** | Context for AI agents (Claude, Cursor, etc.) to diagnose and fix your mesh |
 
 ## Quick Start
 

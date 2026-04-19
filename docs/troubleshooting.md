@@ -115,9 +115,23 @@ Both devices are on the same `10.41.x.x` subnet. Ping works. Reticulum AutoInter
 
 ---
 
+## Run the Diagnostic Script
+
+The fastest way to find problems — run this on any node:
+
+```bash
+wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/haven-diag.sh | sh
+```
+
+It checks the HaLow radio, BATMAN routing, bridge membership, connectivity, and WiFi APs, then prints plain-English verdicts for each. Any `[!!]` line tells you what's wrong and how to fix it.
+
+If the script is already on the node: `sh /root/haven-diag.sh`
+
+---
+
 ## Quick Diagnostics
 
-Run these first on any node to understand what's happening:
+If you prefer to check manually, run these on any node:
 
 ```sh
 # Is the HaLow radio in BATMAN?

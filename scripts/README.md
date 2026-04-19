@@ -17,6 +17,7 @@ Automated setup and utility scripts for Haven mesh nodes.
 | `setup-reticulum.sh` | Install encrypted mesh overlay | Any node (optional) |
 | `configure-heltec.sh` | Configure Heltec HaLow node for BATMAN-adv mesh | Heltec v2 nodes |
 | `haven-bridge-check.sh` | Boot-time health check — auto-repairs BATMAN bridge | All mesh nodes |
+| `haven-diag.sh` | Diagnose mesh problems — prints plain-English verdicts | Any node |
 | `setup-cot-bridge.sh` | Install ATAK/CivTAK bridge | Any node (optional) |
 | `rns_status.py` | Live Reticulum + HaLow network dashboard | Any node |
 | `rns_send.py` | Send a message over Reticulum | Sender node |

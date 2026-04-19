@@ -62,6 +62,11 @@ ping <gate-mesh-ip>   # Ping gateway (find with: uci get network.ahwlan.ipaddr o
 <img src="../assets/mesh-verify.png" alt="Mesh verification from point node" width="500">
 
 > After setup, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings on each node. See [Finding & Accessing Nodes](finding-nodes.md) to reach each node.
+>
+> **Something not working?** Run the diagnostic script on the problem node:
+> ```bash
+> wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/haven-diag.sh | sh
+> ```
 
 ### Connect Your Device
 
@@ -180,8 +185,8 @@ All nodes use `root` as the username.
 | `MESH_ID` | haven | Mesh network name |
 | `MESH_KEY` | havenmesh | Mesh encryption key |
 | `MESH_IP` | 10.41.0.1 | Initial node IP (openmanetd may reassign) |
-| `HALOW_CHANNEL` | 27 | HaLow channel (914 MHz) |
-| `HALOW_HTMODE` | HT20 | Channel width (2 MHz) |
+| `HALOW_CHANNEL` | 28 | HaLow channel (916 MHz) |
+| `HALOW_HTMODE` | HT80 | Channel width (8 MHz) |
 
 ### Point Node Defaults (blue)
 
