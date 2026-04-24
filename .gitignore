@@ -45,7 +45,6 @@ pnpm-lock.yaml
 ## AI assistant / tooling
 .cursor/
 .cursorrules
-AGENTS.md
 
 .claude/
 .claude*
