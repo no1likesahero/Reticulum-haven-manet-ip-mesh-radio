@@ -97,7 +97,7 @@ Haven nodes are compact, rugged units built for field deployment. Each node incl
 
 ## Quick Start
 
-All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on.
+All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on. If the card still looks like it has old data after flashing, use Raspberry Pi Imager’s **Erase** (or SD **format/erase** utility) on the card first, then write the image — see the [setup guide](docs/setup-guide.md) for details.
 
 | Step | What | How |
 |------|------|-----|

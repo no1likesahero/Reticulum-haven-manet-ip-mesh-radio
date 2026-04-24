@@ -43,6 +43,8 @@ This works because the gate bridges WiFi clients onto the same mesh subnet. Your
 
 > **Always ping before you browse.** BATMAN-adv uses a Distributed ARP Table (DAT) instead of broadcasting ARP across the mesh. The first time your laptop talks to a node it has never seen, ARP resolution takes a beat over HaLow — long enough that a browser or SSH connection usually times out before it finishes. A quick `ping` kicks off resolution; once the MAC is cached, everything else (LuCI, SSH) is instant. Skipping this step is the #1 reason "the mesh looks broken" right after setup.
 
+> **Pro tip: LuCI stuck on a never-ending spinner.** If the page opens but sits forever on a loading animation, open a terminal, run `ping <node-ip>`, let a few replies through, then refresh the browser — the UI will often come up right after. Same kind of nudge as pinging *before* you browse, but for when the connection already started in a half-ready state.
+
 ### If `http://<blue-ip>` doesn't load
 
 The `openmanetd.db` entry can be stale (an IP from a previous boot) or blue may not be fully on the mesh. Work through these in order:

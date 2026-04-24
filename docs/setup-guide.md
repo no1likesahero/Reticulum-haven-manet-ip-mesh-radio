@@ -8,6 +8,8 @@ Step-by-step instructions for setting up a Haven mesh network.
 >
 > **Fresh install:** Flash OpenMANET onto each node's microSD card using Raspberry Pi Imager, then insert the card and power on.
 >
+> **Card not wiping cleanly or re-flash looks half-done?** In Raspberry Pi Imager, use the **Erase** option first (in **Choose OS** it is often under **Raspberry Pi OS (other)** or a **Misc** / **utility** section, depending on version; some builds label it as formatting the card). That fully blanks the microSD, then run **Choose OS** → your OpenMANET file / image and **Write** as usual.
+>
 > **Upgrading an existing install:** Open LuCI → System → Backup / Flash Firmware → upload the OpenMANET image. **Uncheck "Keep settings"** for a clean slate.
 
 ## Step 1: Set Up the Gate Node (green)
