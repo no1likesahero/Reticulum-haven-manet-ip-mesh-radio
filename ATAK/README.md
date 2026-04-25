@@ -68,7 +68,7 @@ Fragment header format: `F` + msg_id(4 bytes) + seq(1 byte) + total(1 byte) + da
 ## Requirements
 
 - ATAK-CIV or ATAK-MIL on Android device (or any app that sends/receives CoT via multicast)
-- Phone connected to Haven node WiFi (green-5ghz, blue-5ghz, etc.)
+- Phone connected to Haven node WiFi (e.g. `green-5ghz` or a point’s `blue-2g` AP, etc.)
 - CoT bridge running on each Haven node
 - Reticulum daemon (rnsd) running on each node
 
@@ -116,7 +116,7 @@ Enable and start:
 
 **No special ATAK configuration is needed.** ATAK's default multicast output works out of the box:
 
-1. Connect your phone to the Haven node's WiFi (e.g., `green-5ghz` or `blue-5ghz`)
+1. Connect your phone to the Haven node's WiFi (e.g., `green-5ghz` or a point’s `blue-2g` AP)
 2. Open ATAK — it will automatically send SA beacons and chat to multicast
 3. The bridge intercepts and relays everything transparently
 

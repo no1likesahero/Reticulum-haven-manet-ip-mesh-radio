@@ -4,6 +4,8 @@ The **Haven Point** is a mesh extender node that connects to the Haven Gate over
 
 **[Haven Guide](https://buildwithparallel.com/products/haven)** - Video tutorials, schematics, enclosures, and support.
 
+**First-time setup:** Follow [Step 2 in the setup guide](setup-guide.md#step-2-add-point-nodes-blue). The point node often has **no internet** during that step — **copy the raw script from a browser and paste** into the terminal; don’t count on `wget` from the node.
+
 ## Overview
 
 | Property | Value |
@@ -31,10 +33,10 @@ The **Haven Point** is a mesh extender node that connects to the Haven Gate over
 │  br-ahwlan: <point-mesh-ip>/16       │
 │    ├── bat0 (BATMAN-adv)             │
 │    ├── wlan0 (HaLow sub-1GHz mesh)   │
-│    └── phy1-ap0 (5GHz AP)            │
+│    └── *-ap* (2.4GHz USB client AP)  │
 └───────────────────────────────────────┘
                         │
-                        ▼ 5GHz WiFi
+                        ▼ 2.4GHz WiFi
                    [Clients]
 ```
 
@@ -69,19 +71,16 @@ iwinfo wlan0 info
 # Bit Rate: 32.5 MBit/s
 ```
 
-### 5GHz Access Point
-Client access point for local devices.
+### 2.4GHz Access Point (USB, e.g. Panda RT5370) — set up by the point script
+`setup-haven-point.sh` configures only **2.4GHz** (client) + **HaLow** — not **onboard 5GHz** (2.4GHz + HaLow is the supported point combo). The script puts the AP on **`ahwlan`** and **adds the `*-ap*` interface to `br-ahwlan`** so clients get a **`10.41.x.x` address** from the **gate’s DHCP**. Do not attach the AP to **`lan`**: there is no separate `lan` on these images.
 
-| Property | Value |
-|----------|-------|
-| Interface | phy1-ap0 |
-| Hardware | Cypress CYW43455 |
-| Frequency | 5.180 GHz (Channel 36) |
-| Mode | Access Point |
-| SSID | blue-5ghz |
-| Encryption | WPA2 PSK |
-| Key | blue-5ghz |
-| HT Mode | VHT80 |
+| Property | Script default (change `WIFI_2G4_*`) |
+|----------|----------------------------------------|
+| Example iface | e.g. `phy1-ap0` (varies) |
+| SSID / PSK | `blue-2g` / `blue-2g` |
+| Radio | 2.4GHz USB (e.g. RT5370) |
+
+**Onboard 5GHz (CYW43455):** not configured by `setup-haven-point.sh`. Add in LuCI only if you need it; many sites use USB 2.4GHz + HaLow and leave 5GHz off.
 
 ## Network Configuration
 

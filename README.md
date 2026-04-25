@@ -97,7 +97,7 @@ Haven nodes are compact, rugged units built for field deployment. Each node incl
 
 ## Quick Start
 
-All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on. If the card still looks like it has old data after flashing, use Raspberry Pi Imager’s **Erase** (or SD **format/erase** utility) on the card first, then write the image — see the [setup guide](docs/setup-guide.md) for details.
+All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on. If the card still looks like it has old data after flashing, use Raspberry Pi Imager’s **Erase** (or SD **format/erase** utility) on the card first, then write the image. On **Raspberry Pi 4**, writing **Raspberry Pi OS (vanilla)** to the card once, then **OpenMANET on top**, can unstick a stubborn card; see the [setup guide](docs/setup-guide.md) (same section as Erase / SD tips).
 
 | Step | What | How |
 |------|------|-----|
@@ -115,7 +115,7 @@ All Haven setup scripts assume each node is flashed with a fresh/recent version 
 |------|----------|-----------|---------------|
 | Gate (green) | `havengreen` | `green-5ghz` | `green-5ghz` |
 | Gate (green) 2.4GHz | — | `green` | `greengreen` |
-| Point (blue) | `havenblue` | `blue-5ghz` | `blue-5ghz` |
+| Point (blue) | `havenblue` | `blue-2g` (2.4GHz USB; from `setup-haven-point.sh`) | `blue-2g` |
 
 ## Hardware Requirements
 

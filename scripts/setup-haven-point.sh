@@ -28,10 +28,13 @@ DNS_SERVERS="8.8.8.8 8.8.4.4"
 HALOW_CHANNEL="28"
 HALOW_HTMODE="HT80"
 
-# WiFi AP settings
-WIFI_5GHZ_SSID="blue-5ghz"
-WIFI_5GHZ_KEY="blue-5ghz"
-WIFI_5GHZ_CHANNEL="36"
+# Client WiFi AP (2.4GHz only: USB, e.g. Panda RT5370) — use network 'ahwlan' (flat
+# 10.41.0.0/16, DHCP on the gate). This script does not configure onboard 5GHz; HaLow + USB 2.4G
+# is the supported combo for point nodes. Set ENABLE_2G4_AP=0 to skip the client AP.
+ENABLE_2G4_AP="1"
+WIFI_2G4_SSID="blue-2g"
+WIFI_2G4_KEY="blue-2g"
+WIFI_2G4_CHANNEL="1"
 
 #═══════════════════════════════════════════════════════════════════════════════
 # SCRIPT START
@@ -83,28 +86,35 @@ else
     uci set network.batmesh.master='bat0'
 fi
 
-echo "[3/6] Configuring 5GHz access point..."
-WIFI5_RADIO=$(uci show wireless | grep "\.band='5g'" | head -1 | cut -d. -f2)
-if [ -z "$WIFI5_RADIO" ]; then
-    echo "WARNING: No 5GHz radio found, skipping"
-else
-    echo "  Found 5GHz radio: $WIFI5_RADIO"
-    uci set wireless.$WIFI5_RADIO.disabled='0'
-    uci set wireless.$WIFI5_RADIO.channel="$WIFI_5GHZ_CHANNEL"
-    uci set wireless.$WIFI5_RADIO.htmode='VHT80'
+echo "[3/6] Configuring 2.4GHz client access point (USB/RT5370-friendly)…"
+WIFI2_RADIO=
+if [ "$ENABLE_2G4_AP" = 1 ] && [ -n "$WIFI_2G4_SSID" ]; then
+    WIFI2_RADIO=$(uci show wireless 2>/dev/null | grep "\.band='2g'" | head -1 | cut -d. -f2)
+    if [ -z "$WIFI2_RADIO" ]; then
+        echo "  WARNING: ENABLE_2G4_AP=1 but no 2.4GHz radio in UCI — skip (plug USB WiFi, rescan, or set ENABLE_2G4_AP=0)"
+    else
+        echo "  Found 2.4GHz radio: $WIFI2_RADIO"
+        uci set "wireless.$WIFI2_RADIO.disabled"="0"
+        uci set "wireless.$WIFI2_RADIO.channel"="$WIFI_2G4_CHANNEL"
+        uci set "wireless.$WIFI2_RADIO.htmode"="HT20"
 
-    WIFI5_IFACE=$(uci show wireless | grep "wireless\..*\.device='$WIFI5_RADIO'" | grep -v mesh | head -1 | cut -d. -f2)
-    if [ -z "$WIFI5_IFACE" ]; then
-        WIFI5_IFACE="ap_5ghz"
-        uci set wireless.$WIFI5_IFACE=wifi-iface
+        WIFI2_IFACE=$(uci show wireless | grep "wireless\..*\.device='$WIFI2_RADIO'" | head -1 | cut -d. -f2)
+        if [ -z "$WIFI2_IFACE" ]; then
+            WIFI2_IFACE="ap_2g4"
+            uci set "wireless.$WIFI2_IFACE=wifi-iface"
+        elif [ "$(uci -q get "wireless.$WIFI2_IFACE.mode")" = "mesh" ]; then
+            WIFI2_IFACE="ap_2g4"
+            uci set "wireless.$WIFI2_IFACE=wifi-iface"
+        fi
+        uci set "wireless.$WIFI2_IFACE.device"="$WIFI2_RADIO"
+        uci set "wireless.$WIFI2_IFACE.mode"="ap"
+        uci set "wireless.$WIFI2_IFACE.ssid"="$WIFI_2G4_SSID"
+        uci set "wireless.$WIFI2_IFACE.encryption"="psk2"
+        uci set "wireless.$WIFI2_IFACE.key"="$WIFI_2G4_KEY"
+        uci set "wireless.$WIFI2_IFACE.network"="ahwlan"
     fi
-
-    uci set wireless.$WIFI5_IFACE.device="$WIFI5_RADIO"
-    uci set wireless.$WIFI5_IFACE.mode='ap'
-    uci set wireless.$WIFI5_IFACE.ssid="$WIFI_5GHZ_SSID"
-    uci set wireless.$WIFI5_IFACE.encryption='psk2'
-    uci set wireless.$WIFI5_IFACE.key="$WIFI_5GHZ_KEY"
-    uci set wireless.$WIFI5_IFACE.network='ahwlan'
+else
+    echo "  (2.4GHz client AP disabled — set ENABLE_2G4_AP=1 and SSID/key to enable)"
 fi
 
 echo "[4/6] Configuring bridge and BATMAN-adv..."
@@ -148,17 +158,36 @@ uci delete network.ahwlan_dev.ports 2>/dev/null || true
 uci add_list network.ahwlan_dev.ports='bat0'
 uci commit network
 
-echo "[5/6] Disabling DHCP (Gate handles this)..."
+echo "[5/6] Disabling point DHCP (gate hands out 10.41.x.x) and firewall zone…"
 uci set dhcp.ahwlan=dhcp
 uci set dhcp.ahwlan.interface='ahwlan'
 uci set dhcp.ahwlan.ignore='1'
 uci commit dhcp
-
-echo "[6/6] Configuring firewall..."
 uci add_list firewall.@zone[0].network='ahwlan' 2>/dev/null || true
 uci commit firewall
 
+# shellcheck disable=SC2013
+echo "[6/6] Committing wireless, reconf, and br-ahwlan client AP port(s)…"
 uci commit wireless
+wifi reconf
+sleep 4
+# OpenMANET/Haven use an explicit ahwlan_dev.ports list (not only 'bat0'); client APs on
+# network=ahwlan must be listed or clients associate but get no 10.41 address (and never
+# 'join' a missing 'lan' — there is no separate lan on these images). Add any *-ap* ifaces.
+_P="$(uci -q get network.ahwlan_dev.ports 2>/dev/null)"
+for p in /sys/class/net/*-ap*; do
+    [ -e "$p" ] || continue
+    n="${p##*/}"
+    echo " $_P " | grep -q " $n " && continue
+    uci add_list "network.ahwlan_dev.ports"="$n"
+    _P="$_P $n"
+done
+uci commit network
+if [ -x /etc/init.d/network ]; then
+    /etc/init.d/network reload
+elif [ -x /sbin/wifi ]; then
+    /sbin/wifi
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════════"
@@ -168,7 +197,7 @@ echo ""
 echo "  Hostname:     $HOSTNAME"
 echo "  Mesh IP:      $MESH_IP"
 echo "  Gateway:      $GATEWAY_IP"
-echo "  5GHz SSID:    $WIFI_5GHZ_SSID"
+[ "$ENABLE_2G4_AP" = 1 ] && [ -n "$WIFI_2G4_SSID" ] && echo "  2.4GHz SSID:  $WIFI_2G4_SSID  (USB; br-ahwlan in step 6)"
 echo "  Mesh ID:      $MESH_ID"
 echo ""
 echo "  Reboot now:   reboot"

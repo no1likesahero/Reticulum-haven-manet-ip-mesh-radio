@@ -261,7 +261,7 @@ Your device connects to the Haven node's WiFi AP, then talks to the mesh through
 
 **3. Got an IP but can't reach the node's web interface**
 - Confirm your device has a `10.41.x.x` address (see [Setup Guide → Connect Your Device](setup-guide.md#connect-your-device))
-- If your IP is **not** in the `10.41.x.x` range, your device may have connected to a different network — check you joined `green-5ghz` or `blue-5ghz`, not your home WiFi
+- If your IP is **not** in the `10.41.x.x` range, your device may have connected to a different network — check you joined `green-5ghz` or the point’s client SSID (e.g. `blue-2g`), not your home WiFi
 - Find the node's mesh IP: `uci get network.ahwlan.ipaddr` (run on the node via SSH or connected monitor)
 - Test with ping from your device: `ping <node-mesh-ip>`
 - If ping works but the browser doesn't load, try `http://<node-mesh-ip>` (not https)

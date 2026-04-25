@@ -10,6 +10,15 @@ After setup, you need to find each node's IP to access its web interface (LuCI) 
 | Point (blue) | `havenblue` |
 | Heltec | `heltec.org` |
 
+**`sshpass` (non-interactive / scripts):** If you have `sshpass` installed, you can pass the same passwords without typing them (handy for automation — **don’t** commit real passwords to git). **`-T`** avoids requiring a pseudo-terminal. Examples when your computer is on the **mesh** (same L2 as `10.41.x.x`):
+
+```bash
+sshpass -p 'havengreen' ssh -T -o StrictHostKeyChecking=no root@<gate-mesh-ip>
+sshpass -p 'havenblue' ssh -T -o StrictHostKeyChecking=no root@<point-mesh-ip>
+```
+
+For **home LAN → only gate reachable → mesh node**, use `ProxyCommand` with **two** `sshpass` invocations — see [Method 5](#method-5-ssh-through-the-gate-any-mesh-node).
+
 ---
 
 ## The Core Principle: Any Node, From Anywhere on the Mesh
@@ -19,7 +28,7 @@ After setup, you need to find each node's IP to access its web interface (LuCI) 
 What this means in practice:
 
 - Joined `green-5ghz`? You can reach `http://<blue-ip>`, `http://<heltec-ip>`, and any other node's LuCI.
-- Joined `blue-5ghz`? Same — reach green, heltec, or any point node.
+- Joined a point’s client AP (e.g. `blue-2g` from `setup-haven-point.sh`)? Same — reach green, heltec, or any point node.
 - SSH'd into any node? `ssh root@<any-other-node-ip>` works directly.
 - Phones on different nodes' WiFi APs can ping each other, Reticulum peers auto-discover, etc.
 
@@ -113,7 +122,7 @@ The `strings` command only shows OpenMANET nodes (gate, point). Heltec/OpenWrt n
 
 ## Method 3: Connect to the node's WiFi
 
-Connect your computer to the node's WiFi AP (e.g. `green-5ghz`, `blue-5ghz`, `heltec-5`). If the mesh is working, DHCP will give your computer a `10.41.x.x` address. Check the **Router** field in your network settings — that's the node's IP. Browse to `http://<router-ip>`.
+Connect your computer to the node's WiFi AP (e.g. `green-5ghz`, `blue-2g` on points, `heltec-5`). If the mesh is working, DHCP will give your computer a `10.41.x.x` address. Check the **Router** field in your network settings — that's the node's IP. Browse to `http://<router-ip>`.
 
 ## Method 4: HDMI monitor + static IP (node not on the mesh)
 
@@ -191,7 +200,7 @@ This bypasses the mesh entirely — useful for initial setup or when the mesh is
 
 | Method | Steps |
 |--------|-------|
-| Point WiFi | Connect to **blue-5ghz** (password: `blue-5ghz`), browse to **http://\<point-mesh-ip\>** |
+| Point WiFi | Connect to **`blue-2g`** (PSK: `blue-2g` by default from the point script), browse to **http://\<point-mesh-ip\>** |
 | Gate WiFi (via mesh) | Connect to **green-5ghz**, browse to **http://\<point-mesh-ip\>** (find the IP using Method 2) |
 
 > **Tip:** If you can reach the point node's LuCI through the gate node's WiFi, your mesh is working.

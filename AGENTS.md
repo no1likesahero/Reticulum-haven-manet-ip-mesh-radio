@@ -62,18 +62,32 @@ sh /root/haven-diag.sh
 
 ### How to SSH into nodes
 
+**Interactive (password at prompt):**
+
 ```bash
 # Gate (usually reachable from the LAN)
 ssh root@<gate-ip>          # password: havengreen
 
-# Point node (via gate as jump host)
+# Point node (via gate as jump host) — from home LAN when you can't reach 10.41.x.x directly
 ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<point-mesh-ip>   # password: havenblue
 
 # Heltec node (via gate)
 ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<heltec-mesh-ip>  # password: heltec.org
+```
 
-# With sshpass for automation
-sshpass -p 'havenblue' ssh -o StrictHostKeyChecking=no root@<point-mesh-ip>
+**With `sshpass` (scripts, agents, one-liners):** install it first (`apt install sshpass` on many Linux distros; on macOS, use a Homebrew formula that provides `sshpass` or build from source). Use **`-T`** if the environment has no TTY (some automation). Change passwords if you changed them on the node.
+
+```bash
+# Gate — from your home LAN
+sshpass -p 'havengreen' ssh -T -o StrictHostKeyChecking=no root@<gate-ip> 'hostname; uci get network.ahwlan.ipaddr'
+
+# Point or any 10.41.x.x node — when YOUR laptop is already on the mesh (e.g. green-5ghz)
+sshpass -p 'havenblue' ssh -T -o StrictHostKeyChecking=no root@<point-mesh-ip> 'batctl o'
+
+# Point from home LAN only: jump through gate (two passwords)
+sshpass -p 'havenblue' ssh -T -o StrictHostKeyChecking=no \
+  -o ProxyCommand="sshpass -p 'havengreen' ssh -T -o StrictHostKeyChecking=no -W %h:%p root@<gate-ip>" \
+  root@<point-mesh-ip> 'uci get network.ahwlan.ipaddr'
 ```
 
 ### Finding node IPs

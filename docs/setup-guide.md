@@ -10,6 +10,8 @@ Step-by-step instructions for setting up a Haven mesh network.
 >
 > **Card not wiping cleanly or re-flash looks half-done?** In Raspberry Pi Imager, use the **Erase** option first (in **Choose OS** it is often under **Raspberry Pi OS (other)** or a **Misc** / **utility** section, depending on version; some builds label it as formatting the card). That fully blanks the microSD, then run **Choose OS** → your OpenMANET file / image and **Write** as usual.
 >
+> **Pro tip (Raspberry Pi 4):** If **Erase** then OpenMANET still misbehaves, some installs respond to writing **Raspberry Pi OS (vanilla)** to the card first, then using Imager again to **write the OpenMANET image on top** (overwriting the Pi install). The intermediate full Pi OS image can force a clean partition layout on stubborn cards. Booting Pi OS once in between is optional; either way, finish with OpenMANET as the last write.
+>
 > **Upgrading an existing install:** Open LuCI → System → Backup / Flash Firmware → upload the OpenMANET image. **Uncheck "Keep settings"** for a clean slate.
 
 ## Step 1: Set Up the Gate Node (green)
@@ -30,15 +32,17 @@ sh setup.sh && reboot
 
 ## Step 2: Add Point Nodes (blue)
 
-Point nodes extend the mesh — no internet connection needed.
+Point nodes extend the mesh — no internet connection needed on the point during setup.
 
-1. Plug Ethernet **directly from your computer to the point node**
-2. Open a browser and go to `http://10.41.254.1`
-3. Go to **Services → Terminal**
-4. The point node has no internet, so you'll need to paste the script:
-   - On your computer, open the [raw setup script](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-point.sh) in a browser tab
-   - Select all and copy
-   - Paste into the point node's terminal and press Enter
+> **Pro tip: copy-paste, don’t `wget` (unless the point really has internet).** Many point nodes have **no WAN / no DNS** while you are on the direct Ethernet or first-boot WiFi. **`wget` or `uclient-fetch` to GitHub will fail** on the node. On a **second device** (phone, laptop) that *does* have internet, open the [raw `setup-haven-point.sh`](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-point.sh), copy the full script, and **paste** it into the point’s terminal. That works without any download on the node. If the point **does** have a working default route to the internet, `wget` is fine, but copy-paste is the reliable default.
+
+1. Plug Ethernet **directly from your computer to the point node** (or use the method in [Finding & Accessing Nodes](finding-nodes.md) if you already have another way in)
+2. Open a browser and go to `http://10.41.254.1` (or the address your image uses for first contact)
+3. Go to **Services → Terminal** (or SSH if you have it)
+4. **Paste the script** (recommended):
+   - On a device **with** internet, open the [raw setup script](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-point.sh) in a browser
+   - Select all → copy
+   - Paste into the point node’s terminal and run it (if a long paste fails, save first: `cat > /tmp/s.sh` → paste → **Ctrl+D**, then `sh /tmp/s.sh`)
 5. After the script finishes, type `reboot` and press Enter
 6. Wait ~60 seconds for reboot
 
@@ -74,9 +78,9 @@ ping <gate-mesh-ip>   # Ping gateway (find with: uci get network.ahwlan.ipaddr o
 
 After setup, connect your computer, phone, or tablet to the Haven network:
 
-1. **Join the node's WiFi** — look for `green-5ghz` or `blue-5ghz` in your WiFi list
+1. **Join the node's WiFi** — `green-5ghz` for the gate; for a point, **`blue-2g`** from `setup-haven-point.sh` (2.4GHz USB only — the script does not set up the onboard 5GHz radio)
    - Gate WiFi password: `green-5ghz`
-   - Point WiFi password: `blue-5ghz`
+   - Point: default SSID/PSK `blue-2g` / `blue-2g` (change in `WIFI_2G4_*` in the point script, or in LuCI)
 2. **Verify your device got an IP** — you should receive an address in the `10.41.x.x` range
    - **Mac/Linux:** `ifconfig` or `ip addr` — look for `10.41.x.x` on your WiFi interface
    - **Windows:** `ipconfig` — look for `10.41.x.x` under your Wi-Fi adapter
@@ -171,7 +175,7 @@ All nodes use `root` as the username.
 |------|----------|-----------|---------------|
 | Gate (green) | `havengreen` | `green-5ghz` | `green-5ghz` |
 | Gate (green) 2.4GHz | — | `green` | `greengreen` |
-| Point (blue) | `havenblue` | `blue-5ghz` | `blue-5ghz` |
+| Point (blue) | `havenblue` | `blue-2g` (2.4GHz; `setup-haven-point.sh`) | `blue-2g` |
 | Heltec | `heltec.org` | varies | varies |
 
 ---
