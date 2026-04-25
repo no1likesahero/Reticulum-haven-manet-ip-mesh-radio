@@ -6,7 +6,7 @@ Automatic antenna switching for Haven nodes using an RF SPDT switch. The daemon 
 
 | Property | Value |
 |----------|-------|
-| Script | `scripts/antenna_smart_routing.py` |
+| Script | `scripts/tools/antenna_smart_routing.py` |
 | Runs on | Haven node (gate or point) |
 | RF switch | HMC349 / HMC849 SPDT |
 | Control | CP2102 USB-TTL adapter or RPi GPIO |
@@ -147,7 +147,7 @@ python3 /root/antenna_smart_routing.py --serial /dev/ttyUSB0 \
 1. Copy the script to the Haven node:
 
 ```bash
-scp scripts/antenna_smart_routing.py root@<node-ip>:/root/antenna_smart_routing.py
+scp scripts/tools/antenna_smart_routing.py root@<node-ip>:/root/antenna_smart_routing.py
 ```
 
 2. Ensure `pyserial` is installed (for USB-TTL mode):

@@ -1,0 +1,10 @@
+# Getting started — build a Haven mesh
+
+1. **Flash** each node with a current [OpenMANET](https://openmanet.org/) image for your **Pi model** and **radio** (match **usb** / **spi** / **sdio** and **mm6108** / **mm8108** in the filename to your hardware). Use Raspberry Pi Imager; if the card misbehaves, see the SD card tips in the setup guide.
+2. **Gate (green):** follow [Step 1 in the setup guide](setup-guide.md#step-1-set-up-the-gate-node-green) — plug into your upstream router, run the gate script from this repo, reboot.
+3. **Point (blue) nodes:** follow [Step 2](setup-guide.md#step-2-add-point-nodes-blue) — usually **copy-paste** the point script (the node may have no internet).
+4. **Optional:** [Reticulum](setup-guide.md#step-3-install-reticulum-optional), [messaging](setup-guide.md#step-4-send-reticulum-messages-optional), [ATAK bridge](setup-guide.md#step-5-install-the-atak-bridge-optional).
+
+**Full guide:** [setup-guide.md](setup-guide.md)
+
+**Then:** [find node IPs and open LuCI](../reference/finding-nodes.md). If something fails, [troubleshooting](../runbooks/troubleshooting.md).

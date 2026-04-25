@@ -35,7 +35,7 @@ What this means in practice:
 Caveats:
 
 - **Ping the target first** on the very first reach — BATMAN-adv's Distributed ARP Table needs a beat to resolve (see the Quick Answer callout below). This is the #1 "mesh looks broken" moment.
-- **The mesh has to be healthy** — `bat0` in `br-ahwlan`, `wlan0` inside `bat0`, on every node. See [Troubleshooting](troubleshooting.md).
+- **The mesh has to be healthy** — `bat0` in `br-ahwlan`, `wlan0` inside `bat0`, on every node. See [Troubleshooting](../runbooks/troubleshooting.md).
 - **Heltec's standalone 2.4GHz AP on `10.42.0.0/24`** is the fallback AP that **bypasses** the mesh. Clients there are isolated. After `configure-heltec.sh`, the Heltec joins the mesh and its AP lands on `10.41.x.x` with everyone else.
 - **Coming from your home LAN** (e.g. your laptop on your regular home WiFi) you can only reach the gate directly. To reach other nodes, hop through the gate — SSH `ProxyCommand` or a port-forward (see Method 5).
 
@@ -75,7 +75,7 @@ Still failing? Check from your **laptop** (while on `green-5ghz`):
 - Make sure `ping <blue-ip>` actually returns replies (see the callout in the Quick Answer above — always ping before you browse)
 - Make sure you're using `http://`, not `https://` — LuCI is HTTP only
 
-If ping fails from the gate itself, the problem is the mesh — run the diagnostic script on blue (see [Troubleshooting](troubleshooting.md)).
+If ping fails from the gate itself, the problem is the mesh — run the diagnostic script on blue (see [Troubleshooting](../runbooks/troubleshooting.md)).
 
 ---
 
@@ -90,7 +90,7 @@ Two ways to get a terminal on the node:
 - **SSH from your computer:** `ssh root@<node-ip>` (use the node's password)
 - **LuCI web terminal:** browse to `http://<node-ip>`, then go to **Services → Terminal**. Log in as `root` with the node's password.
 
-<img src="../assets/luci-terminal-ip.png" alt="LuCI terminal showing uci get network.ahwlan.ipaddr" width="500">
+<img src="../../assets/luci-terminal-ip.png" alt="LuCI terminal showing uci get network.ahwlan.ipaddr" width="500">
 
 To find the node's MAC address instead:
 ```bash
@@ -130,9 +130,9 @@ If the node isn't on the mesh yet (no gate, first-time setup, or misconfigured),
 
 1. **Connect a monitor** to the node via HDMI. The boot screen shows the IP at the bottom — look for the `br-ahwlan` line after `inet`:
 
-<img src="../assets/point-boot-screen.JPG" alt="Point node boot screen" width="500">
+<img src="../../assets/point-boot-screen.JPG" alt="Point node boot screen" width="500">
 
-<img src="../assets/point-boot-ip.JPG" alt="Point node IP on boot screen" width="500">
+<img src="../../assets/point-boot-ip.JPG" alt="Point node IP on boot screen" width="500">
 
 2. **Connect to the node's WiFi** (or plug in via Ethernet)
 
@@ -142,7 +142,7 @@ If the node isn't on the mesh yet (no gate, first-time setup, or misconfigured),
    - **Subnet Mask**: `255.255.255.0`
    - **Router**: the node's IP (e.g. `10.41.126.198`)
 
-<img src="../assets/meshpoint-wifi-settings.png" alt="macOS WiFi static IP configuration" width="500">
+<img src="../../assets/meshpoint-wifi-settings.png" alt="macOS WiFi static IP configuration" width="500">
 
 4. **Browse to** `http://<node-ip>` — LuCI should load
 
@@ -217,7 +217,7 @@ batctl n
 
 # No neighbors? The node's HaLow radio isn't meshing.
 # Check: is it powered on? In range? Same channel/key?
-# See the full troubleshooting guide: docs/troubleshooting.md
+# See the full troubleshooting guide: docs/runbooks/troubleshooting.md
 ```
 
-See [Troubleshooting](troubleshooting.md) for detailed diagnostics.
+See [Troubleshooting](../runbooks/troubleshooting.md) for detailed diagnostics.

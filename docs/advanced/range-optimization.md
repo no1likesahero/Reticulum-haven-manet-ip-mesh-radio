@@ -228,11 +228,11 @@ US HaLow channels are in the 902-928 MHz band. Things to consider:
 
 ## Range Testing
 
-Use the included `halow_monitor.py` script to test range in real-time:
+Use the included `halow_range_test.py` script to test range in real time:
 
 ```bash
 # Connect your laptop to the mesh point's WiFi or ethernet, then:
-python3 scripts/halow_monitor.py -p <password>
+python3 scripts/tools/halow_range_test.py -p <password>
 
 # Auto-detects the mesh point, beeps based on SNR,
 # announces download speed and ping periodically
@@ -253,4 +253,4 @@ Drive or walk away from the gate and listen:
 4. **Use omni or RHCP antennas** for mobile use
 5. **Add antenna smart routing** with an RF switch for automatic best-antenna selection ([guide](antenna-smart-routing.md))
 6. **Check noise floor** and pick a clean channel
-7. **Test with `halow_monitor.py`** to find your actual coverage area
+7. **Test with `halow_range_test.py`** to find your actual coverage area

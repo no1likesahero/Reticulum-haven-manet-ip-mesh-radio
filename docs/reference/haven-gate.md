@@ -160,7 +160,7 @@ Reticulum network stack runs as a transport daemon.
 - Service: `/etc/init.d/rnsd`
 - Status: `python3 /root/rns_status.py`
 
-See [../Reticulum/README.md](../Reticulum/README.md) for details.
+See [Reticulum README](../../integrations/reticulum/README.md) for details.
 
 ### ATAK Bridge
 CoT bridge for ATAK/CivTAK integration over Reticulum.
@@ -177,7 +177,7 @@ The Gate bridge runs without a peer hash — it listens for inbound links from
 Point nodes. Get its destination hash with `head -1 /tmp/bridge.log` and
 provide it to each Point node during their CoT bridge setup.
 
-See [../ATAK/README.md](../ATAK/README.md) for details.
+See [ATAK README](../../integrations/atak/README.md) for details.
 
 ## Management
 

@@ -206,7 +206,7 @@ rnsd &
 
 ### Live Dashboard (rns_status.py)
 
-A live-refreshing dashboard that shows Reticulum status, HaLow radio details, configured interfaces, and real-time data exchange between nodes. See [`scripts/rns_status.py`](../scripts/rns_status.py) for the full script.
+A live-refreshing dashboard that shows Reticulum status, HaLow radio details, configured interfaces, and real-time data exchange between nodes. See [`scripts/tools/rns_status.py`](../scripts/tools/rns_status.py) for the full script.
 
 ```bash
 # Standalone — shows status and waits for peers
@@ -224,7 +224,7 @@ The dashboard displays:
 
 ### Message Transfer Demo
 
-Simple sender/receiver scripts for testing Reticulum links across the mesh. See [`scripts/rns_send.py`](../scripts/rns_send.py) and [`scripts/rns_receive.py`](../scripts/rns_receive.py).
+Simple sender/receiver scripts for testing Reticulum links across the mesh. See [`scripts/tools/rns_send.py`](../scripts/tools/rns_send.py) and [`scripts/tools/rns_receive.py`](../scripts/tools/rns_receive.py).
 
 ```bash
 # Receiver — prints destination hash, then waits
@@ -271,7 +271,7 @@ Reticulum has a 500-byte packet MTU to support low-bandwidth links like LoRa. Fo
 
 ### Android via Ethernet (USB-C Adapter) Can't Reach Peers
 
-![Android phone running Sideband connected via USB-C Ethernet to a Heltec node](../assets/sideband-ethernet.jpg)
+![Android phone running Sideband connected via USB-C Ethernet to a Heltec node](../../assets/sideband-ethernet.jpg)
 
 Android does not reliably join multicast groups on USB-C Ethernet adapters, so Reticulum's AutoInterface peer discovery never fires — even when the phone has a valid `10.41.x.x` IP and WiFi is off.
 

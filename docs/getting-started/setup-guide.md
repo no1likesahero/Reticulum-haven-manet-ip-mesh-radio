@@ -25,7 +25,7 @@ This is the node that shares internet with the rest of the mesh.
    - **Browser:** go to `http://<gate-ip>` → **Services → Terminal**
 4. Run the setup script:
 ```bash
-wget -O setup.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-gate.sh
+wget -O setup.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-setup/setup-haven-gate.sh
 sh setup.sh && reboot
 ```
 5. Wait ~60 seconds for reboot
@@ -34,13 +34,13 @@ sh setup.sh && reboot
 
 Point nodes extend the mesh — no internet connection needed on the point during setup.
 
-> **Pro tip: copy-paste, don’t `wget` (unless the point really has internet).** Many point nodes have **no WAN / no DNS** while you are on the direct Ethernet or first-boot WiFi. **`wget` or `uclient-fetch` to GitHub will fail** on the node. On a **second device** (phone, laptop) that *does* have internet, open the [raw `setup-haven-point.sh`](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-point.sh), copy the full script, and **paste** it into the point’s terminal. That works without any download on the node. If the point **does** have a working default route to the internet, `wget` is fine, but copy-paste is the reliable default.
+> **Pro tip: copy-paste, don’t `wget` (unless the point really has internet).** Many point nodes have **no WAN / no DNS** while you are on the direct Ethernet or first-boot WiFi. **`wget` or `uclient-fetch` to GitHub will fail** on the node. On a **second device** (phone, laptop) that *does* have internet, open the [raw `setup-haven-point.sh`](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-setup/setup-haven-point.sh), copy the full script, and **paste** it into the point’s terminal. That works without any download on the node. If the point **does** have a working default route to the internet, `wget` is fine, but copy-paste is the reliable default.
 
-1. Plug Ethernet **directly from your computer to the point node** (or use the method in [Finding & Accessing Nodes](finding-nodes.md) if you already have another way in)
+1. Plug Ethernet **directly from your computer to the point node** (or use the method in [Finding & Accessing Nodes](../reference/finding-nodes.md) if you already have another way in)
 2. Open a browser and go to `http://10.41.254.1` (or the address your image uses for first contact)
 3. Go to **Services → Terminal** (or SSH if you have it)
 4. **Paste the script** (recommended):
-   - On a device **with** internet, open the [raw setup script](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-haven-point.sh) in a browser
+   - On a device **with** internet, open the [raw setup script](https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-setup/setup-haven-point.sh) in a browser
    - Select all → copy
    - Paste into the point node’s terminal and run it (if a long paste fails, save first: `cat > /tmp/s.sh` → paste → **Ctrl+D**, then `sh /tmp/s.sh`)
 5. After the script finishes, type `reboot` and press Enter
@@ -65,13 +65,13 @@ batctl n              # BATMAN-adv neighbors
 ping <gate-mesh-ip>   # Ping gateway (find with: uci get network.ahwlan.ipaddr on the gate)
 ```
 
-<img src="../assets/mesh-verify.png" alt="Mesh verification from point node" width="500">
+<img src="../../assets/mesh-verify.png" alt="Mesh verification from point node" width="500">
 
-> After setup, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings on each node. See [Finding & Accessing Nodes](finding-nodes.md) to reach each node.
+> After setup, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings on each node. See [Finding & Accessing Nodes](../reference/finding-nodes.md) to reach each node.
 >
 > **Something not working?** Run the diagnostic script on the problem node:
 > ```bash
-> wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/haven-diag.sh | sh
+> wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-ops/haven-diag.sh | sh
 > ```
 
 ### Connect Your Device
@@ -88,7 +88,7 @@ After setup, connect your computer, phone, or tablet to the Haven network:
 3. **Access the node's web interface** — browse to `http://<node-mesh-ip>`
    - Find the mesh IP by running `uci get network.ahwlan.ipaddr` on the node, or check its boot screen
 
-> **Can't see the WiFi network?** See [Troubleshooting → WiFi AP Not Broadcasting](troubleshooting.md#checklist-4--wifi-ap-not-broadcasting).
+> **Can't see the WiFi network?** See [Troubleshooting → WiFi AP Not Broadcasting](../runbooks/troubleshooting.md#checklist-4--wifi-ap-not-broadcasting).
 >
 > **Alternative:** If the gate node is plugged into your home router, you can also connect your computer to your **regular home WiFi** and access the gate at the IP shown in your router's device list — no need to switch WiFi networks.
 
@@ -97,30 +97,30 @@ After setup, connect your computer, phone, or tablet to the Haven network:
 Adds an encrypted communications overlay to the mesh. Run on **each node** that needs Reticulum:
 
 ```bash
-wget -O /tmp/setup-reticulum.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-reticulum.sh
+wget -O /tmp/setup-reticulum.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/optional/setup-reticulum.sh
 sh /tmp/setup-reticulum.sh
 /etc/init.d/rnsd enable && /etc/init.d/rnsd start
 ```
 
-See [Reticulum/README.md](../Reticulum/README.md) for configuration details, interface types, and how HaLow traffic reaches Reticulum.
+See [Reticulum README](../../integrations/reticulum/README.md) for configuration details, interface types, and how HaLow traffic reaches Reticulum.
 
 ## Step 4: Send Reticulum Messages (Optional)
 
 Three scripts for demonstrating and monitoring Reticulum data transfer over the Haven mesh. Requires [Step 3](#step-3-install-reticulum-optional).
 
-See [scripts/README.md](../scripts/README.md) for full usage and example output of `rns_status.py`, `rns_send.py`, and `rns_receive.py`.
+See [scripts/README.md](../../scripts/README.md) for full usage and example output of `rns_status.py`, `rns_send.py`, and `rns_receive.py`.
 
 ## Step 5: Install the ATAK Bridge (Optional)
 
 Bridges ATAK/CivTAK situational awareness traffic over Reticulum. Requires [Step 3](#step-3-install-reticulum-optional).
 
 ```bash
-wget -O /tmp/setup-cot-bridge.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/setup-cot-bridge.sh
+wget -O /tmp/setup-cot-bridge.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/optional/setup-cot-bridge.sh
 sh /tmp/setup-cot-bridge.sh
 /etc/init.d/cot_bridge enable && /etc/init.d/cot_bridge start
 ```
 
-See [ATAK/README.md](../ATAK/README.md) for peering, live dashboards, and troubleshooting.
+See [ATAK README](../../integrations/atak/README.md) for peering, live dashboards, and troubleshooting.
 
 ### Verify ATAK Bridge
 ```bash
@@ -133,7 +133,7 @@ tail -f /tmp/bridge.log
 
 The `configure-heltec.sh` script sets up [Heltec HaLow](https://heltec.org/project/ht-hd01/) nodes running OpenWrt to join the Haven mesh using BATMAN-adv routing over 802.11s.
 
-<img src="../assets/heltec-1.JPG" alt="Heltec HaLow node" width="500">
+<img src="../../assets/heltec-1.JPG" alt="Heltec HaLow node" width="500">
 
 This is an alternative to the standard point node setup — use it when your node is a Heltec v2 HaLow board rather than a Raspberry Pi with a HaLow HAT.
 

@@ -3,7 +3,7 @@
 # Prints plain-English verdicts for every common failure mode.
 #
 # Usage:  sh haven-diag.sh
-#         wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/haven-diag.sh | sh
+#         wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-ops/haven-diag.sh | sh
 
 PASS="[OK]"
 FAIL="[!!]"

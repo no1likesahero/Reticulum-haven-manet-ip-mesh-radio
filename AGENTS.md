@@ -52,7 +52,7 @@ The most common failure is wlan0 going directly into br-ahwlan (bypassing bat0).
 
 Run this on any node for a full health check:
 ```bash
-wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/haven-diag.sh | sh
+wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-ops/haven-diag.sh | sh
 ```
 
 Or if the script is already on the node:
@@ -236,7 +236,7 @@ Required: mesh_id=`haven`, key=`havenmesh`, same channel, mesh_fwding=`0`
 
 Install `haven-bridge-check.sh` on every node to auto-repair on boot:
 ```bash
-scp scripts/haven-bridge-check.sh root@<node-ip>:/etc/init.d/haven-bridge-check
+scp scripts/node-ops/haven-bridge-check.sh root@<node-ip>:/etc/init.d/haven-bridge-check
 ssh root@<node-ip> "chmod +x /etc/init.d/haven-bridge-check && /etc/init.d/haven-bridge-check enable"
 ```
 
@@ -255,7 +255,7 @@ ssh root@<node-ip> "chmod +x /etc/init.d/haven-bridge-check && /etc/init.d/haven
 
 | Doc | Use it for |
 |-----|-----------|
-| [docs/finding-nodes.md](docs/finding-nodes.md) | Finding node IPs, accessing LuCI |
-| [docs/troubleshooting.md](docs/troubleshooting.md) | Full troubleshooting checklists |
-| [docs/setup-guide.md](docs/setup-guide.md) | Setting up new nodes |
-| [docs/halow-reference.md](docs/halow-reference.md) | Radio specs, MCS tables |
+| [docs/reference/finding-nodes.md](docs/reference/finding-nodes.md) | Finding node IPs, accessing LuCI |
+| [docs/runbooks/troubleshooting.md](docs/runbooks/troubleshooting.md) | Full troubleshooting checklists |
+| [docs/getting-started/setup-guide.md](docs/getting-started/setup-guide.md) | Setting up new nodes |
+| [docs/reference/halow-reference.md](docs/reference/halow-reference.md) | Radio specs, MCS tables |

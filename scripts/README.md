@@ -2,32 +2,32 @@
 
 Automated setup and utility scripts for Haven mesh nodes.
 
-> For the full setup walkthrough, see **[docs/setup-guide.md](../docs/setup-guide.md)**.
+> For the full setup walkthrough, see **[docs/getting-started/setup-guide.md](../docs/getting-started/setup-guide.md)**.
 >
-> For finding node IPs and accessing LuCI, see **[docs/finding-nodes.md](../docs/finding-nodes.md)**.
+> For finding node IPs and accessing LuCI, see **[docs/reference/finding-nodes.md](../docs/reference/finding-nodes.md)**.
 >
-> For troubleshooting, see **[docs/troubleshooting.md](../docs/troubleshooting.md)**.
+> For troubleshooting, see **[docs/runbooks/troubleshooting.md](../docs/runbooks/troubleshooting.md)**.
 
 ## Scripts Overview
 
 | Script | Purpose | Run On |
 |--------|---------|--------|
-| `setup-haven-gate.sh` | Configure gateway node (internet uplink) | First node |
-| `setup-haven-point.sh` | Configure extender node | Additional nodes |
-| `setup-reticulum.sh` | Install encrypted mesh overlay | Any node (optional) |
-| `configure-heltec.sh` | Configure Heltec HaLow node for BATMAN-adv mesh | Heltec v2 nodes |
-| `haven-bridge-check.sh` | Boot-time health check — auto-repairs BATMAN bridge | All mesh nodes |
-| `haven-diag.sh` | Diagnose mesh problems — prints plain-English verdicts | Any node |
-| `setup-cot-bridge.sh` | Install ATAK/CivTAK bridge | Any node (optional) |
-| `rns_status.py` | Live Reticulum + HaLow network dashboard | Any node |
-| `rns_send.py` | Send a message over Reticulum | Sender node |
-| `rns_receive.py` | Receive messages over Reticulum | Receiver node |
+| `node-setup/setup-haven-gate.sh` | Configure gateway node (internet uplink) | First node |
+| `node-setup/setup-haven-point.sh` | Configure extender node | Additional nodes |
+| `node-setup/configure-heltec.sh` | Configure Heltec HaLow node for BATMAN-adv mesh | Heltec v2 nodes |
+| `optional/setup-reticulum.sh` | Install encrypted mesh overlay | Any node (optional) |
+| `optional/setup-cot-bridge.sh` | Install ATAK/CivTAK bridge | Any node (optional) |
+| `node-ops/haven-bridge-check.sh` | Boot-time health check — auto-repairs BATMAN bridge | All mesh nodes |
+| `node-ops/haven-diag.sh` | Diagnose mesh problems — prints plain-English verdicts | Any node |
+| `tools/rns_status.py` | Live Reticulum + HaLow network dashboard | Any node |
+| `tools/rns_send.py` | Send a message over Reticulum | Sender node |
+| `tools/rns_receive.py` | Receive messages over Reticulum | Receiver node |
 
 ---
 
 ## Reticulum Demo Scripts
 
-These scripts demonstrate and monitor Reticulum data transfer over the Haven mesh. Requires Reticulum to be installed (see [setup guide → Step 3](../docs/setup-guide.md#step-3-install-reticulum-optional)).
+These scripts demonstrate and monitor Reticulum data transfer over the Haven mesh. Requires Reticulum to be installed (see [setup guide → Step 3](../docs/getting-started/setup-guide.md#step-3-install-reticulum-optional)).
 
 ### rns_status.py — Live Network Dashboard
 
@@ -35,7 +35,7 @@ A live-refreshing dashboard showing Reticulum network status, HaLow radio detail
 
 **Deploy to a node:**
 ```bash
-scp scripts/rns_status.py root@<node_ip>:/root/rns_status.py
+scp scripts/tools/rns_status.py root@<node_ip>:/root/rns_status.py
 ```
 
 **Usage:**
@@ -143,8 +143,8 @@ Simple sender/receiver pair for demonstrating Reticulum message delivery across 
 
 **Deploy to nodes:**
 ```bash
-scp scripts/rns_receive.py root@<receiver_ip>:/root/rns_receive.py
-scp scripts/rns_send.py root@<sender_ip>:/root/rns_send.py
+scp scripts/tools/rns_receive.py root@<receiver_ip>:/root/rns_receive.py
+scp scripts/tools/rns_send.py root@<sender_ip>:/root/rns_send.py
 ```
 
 **Usage:**

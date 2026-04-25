@@ -2,7 +2,7 @@
 
 This guide gives you a mental model of how the mesh works, then a checklist for every common failure. If something breaks, start at the top of the relevant checklist and work down.
 
-See also: [Finding & Accessing Nodes](finding-nodes.md) if you just need to find a node's IP.
+See also: [Finding & Accessing Nodes](../reference/finding-nodes.md) if you just need to find a node's IP.
 
 ---
 
@@ -120,7 +120,7 @@ Both devices are on the same `10.41.x.x` subnet. Ping works. Reticulum AutoInter
 The fastest way to find problems — run this on any node:
 
 ```bash
-wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/haven-diag.sh | sh
+wget -O- https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/node-ops/haven-diag.sh | sh
 ```
 
 It checks the HaLow radio, BATMAN routing, bridge membership, connectivity, and WiFi APs, then prints plain-English verdicts for each. Any `[!!]` line tells you what's wrong and how to fix it.
@@ -260,7 +260,7 @@ Your device connects to the Haven node's WiFi AP, then talks to the mesh through
   - On the gate node, restart DHCP: `/etc/init.d/dnsmasq restart`
 
 **3. Got an IP but can't reach the node's web interface**
-- Confirm your device has a `10.41.x.x` address (see [Setup Guide → Connect Your Device](setup-guide.md#connect-your-device))
+- Confirm your device has a `10.41.x.x` address (see [Setup Guide → Connect Your Device](../getting-started/setup-guide.md#connect-your-device))
 - If your IP is **not** in the `10.41.x.x` range, your device may have connected to a different network — check you joined `green-5ghz` or the point’s client SSID (e.g. `blue-2g`), not your home WiFi
 - Find the node's mesh IP: `uci get network.ahwlan.ipaddr` (run on the node via SSH or connected monitor)
 - Test with ping from your device: `ping <node-mesh-ip>`
@@ -549,7 +549,7 @@ The setup scripts and boot health check prevent this by cleaning up anonymous de
   batctl multicast_mode   # should say "enabled"
   ```
 
-- [ ] **EUDs only need AutoInterface** — no RNS config on the nodes is required. Just connect to the mesh WiFi, enable AutoInterface in Sideband/MeshChat, and they discover each other automatically. See [Reticulum/README.md](../Reticulum/README.md) for the easy setup.
+- [ ] **EUDs only need AutoInterface** — no RNS config on the nodes is required. Just connect to the mesh WiFi, enable AutoInterface in Sideband/MeshChat, and they discover each other automatically. See [Reticulum README](../../integrations/reticulum/README.md) for the easy setup.
 
 - [ ] **If multicast doesn't work**, fall back to UDPInterface pointing directly at the other device's IP — this always works since it's unicast.
 

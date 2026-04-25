@@ -1,8 +1,12 @@
 # Haven MANET IP Mesh Radio
 
-Build decentralized, long-range mesh networks with **Haven** - a complete open-source solution for creating self-healing IP networks that share internet access across kilometers without any central infrastructure.
+Build decentralized, long-range mesh networks with **Haven** — a complete open-source solution for creating self-healing IP networks that share internet access across kilometers without any central infrastructure.
 
-**[Haven Guide](https://buildwithparallel.com/products/haven)** - Video tutorials, schematics, 3D printable enclosures, Discord community, and direct support.
+> [!TIP]
+> **New here?** Flash [OpenMANET](https://openmanet.org/), then follow the **[setup guide](docs/getting-started/setup-guide.md)**. **Looking for a node’s IP?** See **[Finding & accessing nodes](docs/reference/finding-nodes.md).**
+
+> [!NOTE]
+> **[Haven Guide](https://buildwithparallel.com/products/haven)** — video tutorials, schematics, 3D printable enclosures, Discord, and support.
 
 ## What is Haven?
 
@@ -39,75 +43,46 @@ Haven nodes are compact, rugged units built for field deployment. Each node incl
 
 ## Network Architecture
 
-```
-                              Internet
-                                  │
-                                  ▼
-    ┌─────────────────────────────────────────────────────────┐
-    │              HAVEN GATE — green (Gateway)                │
-    │                                                         │
-    │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐   │
-    │   │  eth0   │  │  HaLow  │  │  5GHz   │  │  2.4GHz │   │
-    │   │ uplink  │  │  mesh   │  │   AP    │  │   AP    │   │
-    │   └─────────┘  └─────────┘  └─────────┘  └─────────┘   │
-    │        │            │            │            │         │
-    │        └────────────┴────────────┴────────────┘         │
-    │                    br-ahwlan bridge                     │
-    │                    IP assigned by openmanetd            │
-    │                    DHCP Server                          │
-    └─────────────────────────────────────────────────────────┘
-                                  │
-                                  │ HaLow Sub-1GHz Mesh
-                                  │ (1-10+ km range)
-                                  ▼
-    ┌─────────────────────────────────────────────────────────┐
-    │              HAVEN POINT — blue (Extender)               │
-    │                                                         │
-    │             ┌─────────┐          ┌─────────┐            │
-    │             │  HaLow  │          │  5GHz   │            │
-    │             │  mesh   │          │   AP    │            │
-    │             └─────────┘          └─────────┘            │
-    │                  │                    │                 │
-    │                  └────────────────────┘                 │
-    │                    br-ahwlan bridge                     │
-    │                    10.41.x.x/16                         │
-    └─────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-                           [Mobile Devices]
-                          Phones, Laptops, ATAK
+GitHub renders the block below with [Mermaid](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams) (flowcharts, sequence diagrams, and more).
+
+```mermaid
+flowchart TB
+  Internet((Internet / WAN)) -->|uplink| G["Haven GATE (green) — eth0, HaLow mesh, WiFi APs, br-ahwlan, DHCP (openmanetd)"]
+  G ---|"802.11ah sub-1 GHz (typ. 1–10+ km node-to-node)"| P["Haven POINT (blue) — HaLow mesh, WiFi APs, br-ahwlan 10.41.x.x/16"]
+  P --> C((Phones, laptops, ATAK))
 ```
 
 ## Documentation
 
 | Document | What it covers |
 |----------|----------------|
-| **[Setup Guide](docs/setup-guide.md)** | Step-by-step: gate setup, point nodes, Reticulum, ATAK, Heltec nodes |
-| **[Finding & Accessing Nodes](docs/finding-nodes.md)** | How to find node IPs and reach LuCI — the thing you'll need most often |
-| **[Troubleshooting](docs/troubleshooting.md)** | Mental model, diagnostics, fix checklists for every common failure |
-| **[HaLow Reference](docs/halow-reference.md)** | Radio specs, channel widths, MCS tables, software versions |
-| **[Range Optimization](docs/range-optimization.md)** | Antenna selection, TX power, channel width tuning, range testing |
-| **[Antenna Smart Routing](docs/antenna-smart-routing.md)** | Automatic antenna switching with RF SPDT switch |
-| **[Gate Node Config](docs/haven-gate.md)** | Manual gate configuration reference |
-| **[Point Node Config](docs/haven-point.md)** | Manual point configuration reference |
-| **[Reticulum](Reticulum/README.md)** | Encrypted overlay network — configuration, monitoring, apps |
-| **[ATAK Bridge](ATAK/README.md)** | ATAK/CivTAK situational awareness over Reticulum |
+| **[Docs home (sitemap)](docs/README.md)** | Where everything lives: getting started, reference, runbooks, advanced |
+| **[Setup Guide](docs/getting-started/setup-guide.md)** | Step-by-step: gate setup, point nodes, Reticulum, ATAK, Heltec nodes |
+| **[Finding & Accessing Nodes](docs/reference/finding-nodes.md)** | How to find node IPs and reach LuCI — the thing you'll need most often |
+| **[Troubleshooting](docs/runbooks/troubleshooting.md)** | Mental model, diagnostics, fix checklists for every common failure |
+| **[HaLow Reference](docs/reference/halow-reference.md)** | Radio specs, channel widths, MCS tables, software versions |
+| **[Range Optimization](docs/advanced/range-optimization.md)** | Antenna selection, TX power, channel width tuning, range testing |
+| **[Antenna Smart Routing](docs/advanced/antenna-smart-routing.md)** | Automatic antenna switching with RF SPDT switch |
+| **[Gate Node Config](docs/reference/haven-gate.md)** | Manual gate configuration reference |
+| **[Point Node Config](docs/reference/haven-point.md)** | Manual point configuration reference |
+| **[Reticulum](integrations/reticulum/README.md)** | Encrypted overlay network — configuration, monitoring, apps |
+| **[ATAK Bridge](integrations/atak/README.md)** | ATAK/CivTAK situational awareness over Reticulum |
 | **[Scripts](scripts/README.md)** | Script reference and Reticulum demo tools |
-| **[AI Agents](agents.md)** | Context for AI agents (Claude, Cursor, etc.) to diagnose and fix your mesh |
+| **[AI Agents](AGENTS.md)** | Context for AI agents (Claude, Cursor, etc.) to diagnose and fix your mesh |
 
 ## Quick Start
 
-All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on. If the card still looks like it has old data after flashing, use Raspberry Pi Imager’s **Erase** (or SD **format/erase** utility) on the card first, then write the image. On **Raspberry Pi 4**, writing **Raspberry Pi OS (vanilla)** to the card once, then **OpenMANET on top**, can unstick a stubborn card; see the [setup guide](docs/setup-guide.md) (same section as Erase / SD tips).
+All Haven setup scripts assume each node is flashed with a fresh/recent version of [OpenMANET](https://openmanet.org/). Flash the image onto a microSD card using Raspberry Pi Imager, insert it into the node, and power on. If the card still looks like it has old data after flashing, use Raspberry Pi Imager’s **Erase** (or SD **format/erase** utility) on the card first, then write the image. On **Raspberry Pi 4**, writing **Raspberry Pi OS (vanilla)** to the card once, then **OpenMANET on top**, can unstick a stubborn card; see the [setup guide](docs/getting-started/setup-guide.md) (same section as Erase / SD tips).
 
 | Step | What | How |
 |------|------|-----|
-| **1** | Set up the Gate node | Plug into router, run setup script → [Setup Guide](docs/setup-guide.md#step-1-set-up-the-gate-node-green) |
-| **2** | Add Point nodes | Plug into laptop, paste setup script → [Setup Guide](docs/setup-guide.md#step-2-add-point-nodes-blue) |
-| **3** | Install Reticulum *(optional)* | Encrypted overlay → [Setup Guide](docs/setup-guide.md#step-3-install-reticulum-optional) |
+| **1** | Set up the Gate node | Plug into router, run setup script → [Setup Guide](docs/getting-started/setup-guide.md#step-1-set-up-the-gate-node-green) |
+| **2** | Add Point nodes | Plug into laptop, paste setup script → [Setup Guide](docs/getting-started/setup-guide.md#step-2-add-point-nodes-blue) |
+| **3** | Install Reticulum *(optional)* | Encrypted overlay → [Setup Guide](docs/getting-started/setup-guide.md#step-3-install-reticulum-optional) |
 | **4** | Send Reticulum messages *(optional)* | Test encrypted messaging → [Scripts](scripts/README.md#reticulum-demo-scripts) |
-| **5** | Install the ATAK bridge *(optional)* | Situational awareness → [Setup Guide](docs/setup-guide.md#step-5-install-the-atak-bridge-optional) |
+| **5** | Install the ATAK bridge *(optional)* | Situational awareness → [Setup Guide](docs/getting-started/setup-guide.md#step-5-install-the-atak-bridge-optional) |
 
-> After any step, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings. See **[Finding & Accessing Nodes](docs/finding-nodes.md)** to reach each node.
+> After any step, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings. See **[Finding & Accessing Nodes](docs/reference/finding-nodes.md)** to reach each node.
 
 **Default credentials** (user: `root`):
 

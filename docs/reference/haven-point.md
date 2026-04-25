@@ -4,7 +4,7 @@ The **Haven Point** is a mesh extender node that connects to the Haven Gate over
 
 **[Haven Guide](https://buildwithparallel.com/products/haven)** - Video tutorials, schematics, enclosures, and support.
 
-**First-time setup:** Follow [Step 2 in the setup guide](setup-guide.md#step-2-add-point-nodes-blue). The point node often has **no internet** during that step — **copy the raw script from a browser and paste** into the terminal; don’t count on `wget` from the node.
+**First-time setup:** Follow [Step 2 in the setup guide](../getting-started/setup-guide.md#step-2-add-point-nodes-blue). The point node often has **no internet** during that step — **copy the raw script from a browser and paste** into the terminal; don’t count on `wget` from the node.
 
 ## Overview
 
