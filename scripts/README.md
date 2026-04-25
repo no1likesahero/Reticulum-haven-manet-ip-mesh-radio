@@ -25,9 +25,9 @@ Automated setup and utility scripts for Haven mesh nodes.
 
 ---
 
-## Reticulum Demo Scripts
+## Reticulum demo scripts (on-node RNS)
 
-These scripts demonstrate and monitor Reticulum data transfer over the Haven mesh. Requires Reticulum to be installed (see [setup guide → Step 3](../docs/getting-started/setup-guide.md#step-3-install-reticulum-optional)).
+**Everyday messaging:** use **Sideband, MeshChat,** or similar on your **devices** on Haven WiFi; you do **not** need these scripts or on-node RNS. These tools run on the **node** after you install RNS with [setup → Step 3, on-node path](../docs/getting-started/setup-guide.md#step-3-install-reticulum-optional) ([`optional/setup-reticulum.sh`](optional/setup-reticulum.sh)) for demos, monitoring, and testing.
 
 ### rns_status.py — Live Network Dashboard
 

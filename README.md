@@ -68,7 +68,7 @@ flowchart TB
 | **[Antenna Smart Routing](docs/advanced/antenna-smart-routing.md)** | Automatic antenna switching with RF SPDT switch |
 | **[Gate Node Config](docs/reference/haven-gate.md)** | Manual gate configuration reference |
 | **[Point Node Config](docs/reference/haven-point.md)** | Manual point configuration reference |
-| **[Reticulum](integrations/reticulum/README.md)** | Encrypted overlay network — configuration, monitoring, apps |
+| **[Reticulum](integrations/reticulum/README.md)** | **Usually:** client apps (Sideband, MeshChat) on Haven WiFi; on-node RNS only for bridge/demos |
 | **[ATAK Bridge](integrations/atak/README.md)** | ATAK/CivTAK situational awareness over Reticulum |
 | **[Scripts](scripts/README.md)** | Script reference and Reticulum demo tools |
 | **[AI Agents](AGENTS.md)** | Context for AI agents (Claude, Cursor, etc.) to diagnose and fix your mesh |
@@ -81,8 +81,8 @@ All Haven setup scripts assume each node is flashed with a fresh/recent version 
 |------|------|-----|
 | **1** | Set up the Gate node | Plug into router, run setup script → [Setup Guide](docs/getting-started/setup-guide.md#step-1-set-up-the-gate-node-green) |
 | **2** | Add Point nodes | Plug into laptop, paste setup script → [Setup Guide](docs/getting-started/setup-guide.md#step-2-add-point-nodes-blue) |
-| **3** | Install Reticulum *(optional)* | Encrypted overlay → [Setup Guide](docs/getting-started/setup-guide.md#step-3-install-reticulum-optional) |
-| **4** | Send Reticulum messages *(optional)* | Test encrypted messaging → [Scripts](scripts/README.md#reticulum-demo-scripts) |
+| **3** | Reticulum *(optional)* | **Usually:** apps on your phone/laptop (Sideband, MeshChat) on Haven WiFi — *no* RNS on the node. **Advanced:** on-node RNS for bridge/demos only → [Setup Guide](docs/getting-started/setup-guide.md#step-3-install-reticulum-optional) |
+| **4** | Demo `rns_*` scripts on nodes *(optional)* | **Only** if you installed on-node RNS in step 3 — [Scripts](scripts/README.md#reticulum-demo-scripts) (otherwise use your Reticulum app) |
 | **5** | Install the ATAK bridge *(optional)* | Situational awareness → [Setup Guide](docs/getting-started/setup-guide.md#step-5-install-the-atak-bridge-optional) |
 
 > After any step, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings. See **[Finding & Accessing Nodes](docs/reference/finding-nodes.md)** to reach each node.

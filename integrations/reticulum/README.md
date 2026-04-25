@@ -1,6 +1,9 @@
 # Reticulum on Haven Mesh Networks
 
-[Reticulum](https://reticulum.network/) is a cryptography-based networking stack for building resilient networks over any medium. On Haven nodes, Reticulum provides an encrypted overlay network that operates on top of the HaLow mesh.
+[Reticulum](https://reticulum.network/) is a cryptography-based stack for end-to-end encrypted links over any packet network.
+
+> [!TIP]
+> **The usual, easiest way:** **do not install Reticulum (RNS) on your Haven nodes** at all. **Run Reticulum only on your own devices** — e.g. [Sideband](https://github.com/markqvist/Sideband) (phone), [MeshChat](https://github.com/liamcottle/reticulum-meshchat) (desktop), or [NomadNet](https://github.com/markqvist/NomadNet). Connect each device to the **Haven WiFi**; it gets a `10.41.x.x` address. In the app, enable **AutoInterface**. Haven’s mesh is just IP under the covers — the HaLow backhaul is invisible, and your apps discover each other on the same subnet. **No RNS on the node, no SSH, no `setup-reticulum.sh` on the node.** Use the on-node path below only when you truly need it (ATAK/CoT bridge, always-on services on a node, or the demo scripts in this repo).
 
 **[Haven Guide](https://buildwithparallel.com/products/haven)** - Video tutorials and support for the complete Haven platform.
 
@@ -14,13 +17,15 @@
 
 ## Deployment Approaches
 
-There are two ways to run Reticulum on a Haven mesh. Start with the easy way.
+This section matches the [setup guide: Step 3](../../docs/getting-started/setup-guide.md#step-3-install-reticulum-optional) — start here before running anything on nodes.
 
 ---
 
-### Easy: Reticulum on EUDs Only (No Node Installation)
+### Recommended: Reticulum on your devices only (no RNS on Haven)
 
-The simplest way to use Reticulum on a Haven mesh is to **not install it on the nodes at all**. The mesh nodes act as pure IP routers. Each end-user device (phone, laptop, tablet) runs a Reticulum client and connects to the mesh over WiFi — the HaLow transport is completely invisible to them.
+**This is what we suggest for most people:** keep Haven nodes as **normal mesh routers** (OpenMANET, BATMAN-adv, `br-ahwlan`). **Do not install** `rnsd` / RNS on the Pi. Install **Sideband, MeshChat,** or another Reticulum app on each **laptop, tablet, or phone**; connect to the gate or point **WiFi**; enable **AutoInterface** in the app. Reticulum traffic runs **client-to-client** over the `10.41.x.x` LAN that Haven already provides.
+
+The mesh nodes act as pure IP routers. Each end-user device runs a Reticulum **client** and uses the haven network like any other WiFi — the HaLow transport is completely invisible to them.
 
 ```
 ┌─────────────┐        ┌─────────────────────────────────┐        ┌─────────────┐
@@ -53,23 +58,31 @@ The simplest way to use Reticulum on a Haven mesh is to **not install it on the 
 3. In the app's Reticulum config, enable `AutoInterface` — no other config needed
 4. Devices discover each other automatically via multicast on the shared subnet
 
-> This is the recommended starting point. The mesh handles the HaLow bridging under the hood — from Reticulum's perspective it's just a WiFi network.
+> The mesh handles the HaLow bridging under the hood — from Reticulum’s perspective it is just a Wi‑Fi (IP) network.
 
 ---
 
-### Advanced: Reticulum Installed on Nodes
+### Advanced: RNS running on a Haven node
 
-Installing RNS directly on the mesh nodes enables additional capabilities:
+**Only if you need it:** install RNS *on* a node. Typical reasons — **not** for basic Sideband/MeshChat use:
+
+- **[ATAK/CoT bridge](../atak/README.md)** (bridge requires `rnsd` on the node)  
+- **Always-on** RNS (NomadNet pages, LXMF stores) when no user device is on the mesh  
+- This repo’s **[`rns_*.py`](../scripts/tools/)** demos, which SSH into `/root/…` on the node  
+
+For **peer-to-peer messaging and apps on phones/laptops,** stay with **EUDs only** above; do **not** add RNS to Haven unless one of the above applies.
+
+Installing RNS directly on the mesh nodes enables the extra capabilities on the **node**:
 - **Transport node** — nodes can relay traffic between Reticulum segments (e.g. bridging HaLow mesh to a LoRa RNode for extreme range)
 - **Always-on services** — run NomadNet pages or LXMF message stores that are available even when no laptops are connected
 - **Cross-interface routing** — route between HaLow, LoRa, and internet-connected segments at the node level
 - **Store-and-forward** — nodes buffer messages for offline EUDs
 
-If you only need EUD-to-EUD messaging across the mesh, the easy approach above is sufficient. Install RNS on nodes only when you need the mesh infrastructure itself to participate in routing.
-
 ---
 
-## Architecture
+## Architecture (when RNS is installed on a node)
+
+The diagram is for **rnsd on the node** (advanced). **Client-only** deployments still use the same `br-ahwlan` and `10.41.x.x` path from the radio up — the Reticulum process just runs on your **phone or laptop** instead of on the Pi.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -94,9 +107,11 @@ If you only need EUD-to-EUD messaging across the mesh, the easy approach above i
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Installation
+## Installing RNS on a Haven node (advanced)
 
-Reticulum is pre-installed on Haven nodes. To install manually:
+Stock OpenMANET does **not** have to run Reticulum. Use the optional [setup script](../../scripts/optional/setup-reticulum.sh) (see the [setup guide, Step 3](../../docs/getting-started/setup-guide.md#step-3-install-reticulum-optional) **on-node** subsection) only when you need `rnsd` on the device.
+
+To install manually (e.g. for debugging or a custom build):
 
 ```bash
 # Install Python and pip
@@ -107,9 +122,11 @@ opkg install python3 python3-pip
 pip3 install rns
 ```
 
-## Configuration
+## Configuration (on-node RNS)
 
-The Reticulum configuration file is located at `/root/.reticulum/config` on each node. Edit it to control which radio or network interface Reticulum uses.
+The following applies to **`rnsd` on a node**, not to Sideband/MeshChat on your laptop.
+
+The Reticulum configuration file is located at `/root/.reticulum/config` on each node. Edit it to control which network interface Reticulum uses.
 
 ```bash
 vi /root/.reticulum/config
@@ -183,9 +200,9 @@ After editing, restart Reticulum:
 | AutoInterface | Auto-discovers peers on a network device via multicast — radio-agnostic |
 | UDPInterface | Broadcasts packets to all nodes on the mesh subnet |
 
-## Running Reticulum
+## Running Reticulum on a node
 
-### As a Service (Recommended)
+### As a service (`rnsd`)
 ```bash
 # Start
 /etc/init.d/rnsd start
@@ -202,7 +219,9 @@ python3 /root/rns_status.py
 rnsd &
 ```
 
-## Monitoring
+## On-node tools and monitoring
+
+**Requires** RNS installed and running on the **node** (e.g. after [setup-reticulum](../../scripts/optional/setup-reticulum.sh)). For day-to-day messaging with Sideband/MeshChat, you do **not** need any of this.
 
 ### Live Dashboard (rns_status.py)
 
@@ -239,9 +258,9 @@ python3 /root/rns_send.py <dest_hash> Your message here
 rnpath -l
 ```
 
-## Data Flow
+## Data flow (ATAK bridge; requires on-node RNS)
 
-When an ATAK device sends a CoT message:
+When an ATAK device sends a CoT message, on nodes that run the **CoT bridge** and `rnsd`:
 
 ```
 1. ATAK sends CoT XML to multicast (SA: 239.2.3.1:6969, Chat: 224.10.10.1:17012)

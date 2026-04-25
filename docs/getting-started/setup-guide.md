@@ -92,9 +92,11 @@ After setup, connect your computer, phone, or tablet to the Haven network:
 >
 > **Alternative:** If the gate node is plugged into your home router, you can also connect your computer to your **regular home WiFi** and access the gate at the IP shown in your router's device list — no need to switch WiFi networks.
 
-## Step 3: Install Reticulum (Optional)
+## Step 3: Install Reticulum (optional)
 
-Adds an encrypted communications overlay to the mesh. Run on **each node** that needs Reticulum:
+**Recommended (simplest):** do **not** put Reticulum (RNS) on your Haven nodes. Install a Reticulum **app on each device** you care about — e.g. [Sideband](https://github.com/markqvist/Sideband) (iOS/Android) or [MeshChat](https://github.com/liamcottle/reticulum-meshchat) (desktop). Connect each device to the **Haven mesh WiFi**; in the app, turn on **AutoInterface**. The mesh is just a `10.41.x.x` network; your clients find each other the same as on any LAN. This is the path we document first in the [Reticulum README](../../integrations/reticulum/README.md).
+
+**On-node RNS (advanced, optional):** only if you need `rnsd` on a node — e.g. the [ATAK/CoT bridge](../../integrations/atak/README.md), always-on RNS on hardware, or the [demo `rns_*.py` scripts](../../scripts/README.md#reticulum-demo-scripts). Then run on **each** such node:
 
 ```bash
 wget -O /tmp/setup-reticulum.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/optional/setup-reticulum.sh
@@ -102,17 +104,19 @@ sh /tmp/setup-reticulum.sh
 /etc/init.d/rnsd enable && /etc/init.d/rnsd start
 ```
 
-See [Reticulum README](../../integrations/reticulum/README.md) for configuration details, interface types, and how HaLow traffic reaches Reticulum.
+See the [Reticulum README](../../integrations/reticulum/README.md) for when to use clients vs nodes, and for on-node config when you do install.
 
 ## Step 4: Send Reticulum Messages (Optional)
 
-Three scripts for demonstrating and monitoring Reticulum data transfer over the Haven mesh. Requires [Step 3](#step-3-install-reticulum-optional).
+If you are using only **Sideband, MeshChat,** etc. (Reticulum on your **devices**), you do not need this step on the **nodes** — you already send messages in the app. Skip to [Step 5](#step-5-install-the-atak-bridge-optional) or you are done.
 
-See [scripts/README.md](../../scripts/README.md) for full usage and example output of `rns_status.py`, `rns_send.py`, and `rns_receive.py`.
+The [demo scripts in `scripts/tools/`](../../scripts/README.md#reticulum-demo-scripts) are for when **RNS is running on a node** — they need [Step 3](#step-3-install-reticulum-optional) with on-node RNS, then:
+
+See [scripts/README.md](../../scripts/README.md) for `rns_status.py`, `rns_send.py`, and `rns_receive.py` usage and example output.
 
 ## Step 5: Install the ATAK Bridge (Optional)
 
-Bridges ATAK/CivTAK situational awareness traffic over Reticulum. Requires [Step 3](#step-3-install-reticulum-optional).
+Bridges ATAK/CivTAK traffic over Reticulum. The bridge runs **on each node** and expects `rnsd` — you need **on-node** RNS from [Step 3](#step-3-install-reticulum-optional) first (client-only Reticulum is *not* enough for this).
 
 ```bash
 wget -O /tmp/setup-cot-bridge.sh https://raw.githubusercontent.com/buildwithparallel/haven-manet-ip-mesh-radio/main/scripts/optional/setup-cot-bridge.sh
