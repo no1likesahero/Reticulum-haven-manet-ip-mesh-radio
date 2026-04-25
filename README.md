@@ -3,10 +3,7 @@
 Build decentralized, long-range mesh networks with **Haven** — a complete open-source solution for creating self-healing IP networks that share internet access across kilometers without any central infrastructure.
 
 > [!TIP]
-> **New here?** Flash [OpenMANET](https://openmanet.org/), then follow the **[setup guide](docs/getting-started/setup-guide.md)**. **Looking for a node’s IP?** See **[Finding & accessing nodes](docs/reference/finding-nodes.md).**
-
-> [!NOTE]
-> **[Haven Guide](https://buildwithparallel.com/products/haven)** — video tutorials, schematics, 3D printable enclosures, Discord, and support.
+> **Get on the air:** flash [OpenMANET](https://openmanet.org/), then the **[setup guide](docs/getting-started/setup-guide.md)**. **Find a node:** **[Finding & accessing nodes](docs/reference/finding-nodes.md)**. **Print a case** (100% free): **[Enclosures](#enclosures)** or [Haven case on Printables](https://www.printables.com/model/1468595-haven-case-for-raspberry-pi-based-manet-by-paralle). **Build help & community:** [Haven Guide](https://buildwithparallel.com/products/haven) (videos, schematics, Discord, support).
 
 ## What is Haven?
 
@@ -41,9 +38,14 @@ Haven nodes are compact, rugged units built for field deployment. Each node incl
 | ![Node in hand](assets/node-hand.png) | ![Node vehicle mount](assets/node-vehicle-mount.png) | ![Node ports and mount](assets/node-ports-mount.png) |
 | Handheld | Vehicle deployment | Ports and mounting |
 
-## Network Architecture
+## Enclosures
 
-GitHub renders the block below with [Mermaid](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams) (flowcharts, sequence diagrams, and more).
+The official [Haven case for Raspberry Pi–based MANET](https://www.printables.com/model/1468595-haven-case-for-raspberry-pi-based-manet-by-paralle) on [Printables](https://www.printables.com/) is **100% free** — **public domain**: no cost to download, and you may print, modify, and share without restriction. Enclosure design: [MOROSX](https://morosx.com/).
+
+- **[Download the Haven case (Printables)](https://www.printables.com/model/1468595-haven-case-for-raspberry-pi-based-manet-by-paralle)** — STLs and part notes are on that page
+- The [Haven Guide](https://buildwithparallel.com/products/haven) also places the case in the full build (radios, power, mounting, etc.)
+
+## Network Architecture
 
 ```mermaid
 flowchart TB
@@ -57,6 +59,7 @@ flowchart TB
 | Document | What it covers |
 |----------|----------------|
 | **[Docs home (sitemap)](docs/README.md)** | Where everything lives: getting started, reference, runbooks, advanced |
+| **[Enclosures](#enclosures)** (this page) | 100% free public-domain **3D case** for Pi-based nodes ([Printables](https://www.printables.com/model/1468595-haven-case-for-raspberry-pi-based-manet-by-paralle)) |
 | **[Setup Guide](docs/getting-started/setup-guide.md)** | Step-by-step: gate setup, point nodes, Reticulum, ATAK, Heltec nodes |
 | **[Finding & Accessing Nodes](docs/reference/finding-nodes.md)** | How to find node IPs and reach LuCI — the thing you'll need most often |
 | **[Troubleshooting](docs/runbooks/troubleshooting.md)** | Mental model, diagnostics, fix checklists for every common failure |
@@ -84,13 +87,19 @@ All Haven setup scripts assume each node is flashed with a fresh/recent version 
 
 > After any step, use LuCI's web interface to change passwords, WiFi SSIDs, and other settings. See **[Finding & Accessing Nodes](docs/reference/finding-nodes.md)** to reach each node.
 
-**Default credentials** (user: `root`):
+> [!CAUTION]
+> The defaults below are for first boot only. **Change the root password and WiFi credentials** in LuCI before you rely on this in the field.
+
+<details>
+<summary><strong>Default <code>root</code> credentials and WiFi (first boot)</strong></summary>
 
 | Node | Password | WiFi SSID | WiFi Password |
 |------|----------|-----------|---------------|
 | Gate (green) | `havengreen` | `green-5ghz` | `green-5ghz` |
 | Gate (green) 2.4GHz | — | `green` | `greengreen` |
 | Point (blue) | `havenblue` | `blue-2g` (2.4GHz USB; from `setup-haven-point.sh`) | `blue-2g` |
+
+</details>
 
 ## Hardware Requirements
 
@@ -130,21 +139,16 @@ All Haven setup scripts assume each node is flashed with a fresh/recent version 
 
 ## Contributing
 
-Contributions welcome:
-- Hardware compatibility testing
-- Documentation improvements
-- Bug fixes and features
-- Use case examples
+Contributions welcome. Examples:
+
+- [ ] Hardware compatibility testing
+- [ ] Documentation improvements
+- [ ] Bug fixes and features
+- [ ] New use case write-ups
 
 ## License
 
 MIT License - See [LICENSE](LICENSE) file.
-
-## 3D Printable Enclosure
-
-The official Haven case is released into the **public domain** — free for anyone to print, modify, and distribute. Designed for Parallel by [MOROSX](https://morosx.com/).
-
-[Download on Printables](https://www.printables.com/model/1468595-haven-case-for-raspberry-pi-based-manet-by-paralle)
 
 ## Acknowledgments
 

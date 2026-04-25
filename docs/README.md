@@ -1,9 +1,9 @@
 # Haven documentation
 
 > [!NOTE]
-> Optional overlays (**Reticulum**, **ATAK/CoT**) are documented under **[`integrations/`](../integrations/)** in this repo.
+> Optional overlays (**Reticulum**, **ATAK/CoT**) are documented under **[`integrations/`](../integrations/)** in this repo. **3D case (100% free, public domain):** see **[Enclosures](../README.md#enclosures)** in the main readme.
 
-How the docs fit together (renders on GitHub via [Mermaid](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams)):
+### How the docs fit together
 
 ```mermaid
 flowchart LR
