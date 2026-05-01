@@ -10,15 +10,6 @@ After setup, you need to find each node's IP to access its web interface (LuCI) 
 | Point (blue) | `havenblue` |
 | Heltec | `heltec.org` |
 
-**`sshpass` (non-interactive / scripts):** If you have `sshpass` installed, you can pass the same passwords without typing them (handy for automation — **don’t** commit real passwords to git). **`-T`** avoids requiring a pseudo-terminal. Examples when your computer is on the **mesh** (same L2 as `10.41.x.x`):
-
-```bash
-sshpass -p 'havengreen' ssh -T -o StrictHostKeyChecking=no root@<gate-mesh-ip>
-sshpass -p 'havenblue' ssh -T -o StrictHostKeyChecking=no root@<point-mesh-ip>
-```
-
-For **home LAN → only gate reachable → mesh node**, use `ProxyCommand` with **two** `sshpass` invocations — see [Method 5](#method-5-ssh-through-the-gate-any-mesh-node).
-
 ---
 
 ## The Core Principle: Any Node, From Anywhere on the Mesh
@@ -150,31 +141,18 @@ If the node isn't on the mesh yet (no gate, first-time setup, or misconfigured),
 
 ## Method 5: SSH through the gate (any mesh node)
 
-Works for **any node on the mesh** — point (blue), Heltec, or any other `10.41.x.x` node. From your laptop, the gate is usually the only node reachable directly over your LAN; every other node lives on the HaLow mesh and is reached by jumping through the gate.
+Works for **any node on the mesh** — point (blue), Heltec, or any other `10.41.x.x` node. From your laptop, the gate is usually the only node reachable directly over your LAN; every other node lives on the HaLow mesh and is reached by hopping through the gate.
 
-1. Find the target node's mesh IP from the gate — `strings /etc/openmanetd/openmanetd.db` for point nodes, `cat /tmp/dhcp.leases` for Heltec/other OpenWrt nodes.
-
-2. From your laptop, SSH through the gate using ProxyCommand:
+1. SSH into the gate from your laptop: `ssh root@<gate-ip>`
+2. Find the target node's mesh IP — `strings /etc/openmanetd/openmanetd.db` for point nodes, `cat /tmp/dhcp.leases` for Heltec/other OpenWrt nodes.
+3. From the gate, SSH to the target node:
 ```bash
-ssh -o ProxyCommand="ssh -W %h:%p root@<gate-ip>" root@<node-mesh-ip>
-# e.g. ssh -o ProxyCommand="ssh -W %h:%p root@192.168.0.119" root@10.41.126.198
+ssh root@<node-mesh-ip>          # e.g. havenblue / heltec.org / etc.
 ```
 
-3. Or with `sshpass` for scripting:
-```bash
-sshpass -p '<node-pw>' ssh -o StrictHostKeyChecking=no \
-  -o ProxyCommand="sshpass -p '<gate-pw>' ssh -o StrictHostKeyChecking=no -W %h:%p root@<gate-ip>" \
-  root@<node-mesh-ip>
-```
+The gate is on the mesh, so it can reach any `10.41.x.x` node directly.
 
-Your laptop talks to the gate over your LAN, and the gate forwards the connection over the mesh to the target node.
-
-> **Shortcut: already on the gate?** If you're already SSH'd into green, you don't need `ProxyCommand` — just SSH straight to the other node from there. The gate is already on the mesh, so it can reach any `10.41.x.x` node directly:
-> ```bash
-> # On green, no ProxyCommand, no placeholders
-> ssh root@10.41.126.198          # e.g. havenblue / heltec.org / etc.
-> ```
-> Use `ProxyCommand` only when you're starting from your laptop and want to hop through the gate in a single command.
+> **For scripted/automated access** (e.g. AI agents), see [AGENTS.md](../../AGENTS.md#how-to-ssh-into-nodes) for `sshpass` and `ProxyCommand` one-liners.
 
 ## Method 6: Connect directly to a Heltec node's WiFi
 
